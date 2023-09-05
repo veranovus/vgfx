@@ -137,6 +137,7 @@ int main(i32 argc, char *argv[]) {
     glUseProgram(program);
 
     vgfx_shader_program_uniform_f1(program, "u_time", time);
+    vgfx_shader_program_uniform_i1(program, "u_texture", 0);
 
     glBindTexture(GL_TEXTURE_2D, texture->handle);
     glBindVertexArray(vao);

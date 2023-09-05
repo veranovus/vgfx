@@ -28,3 +28,29 @@ void vgfx_shader_program_uniform_f3(VGFX_ShaderProgram program,
 void vgfx_shader_program_uniform_f4(VGFX_ShaderProgram program,
                                     const char *name, f32 v0, f32 v1, f32 v2,
                                     f32 v3);
+
+void vgfx_shader_program_uniform_i1(VGFX_ShaderProgram program,
+                                    const char *name, i32 v0);
+
+void vgfx_shader_program_uniform_i2(VGFX_ShaderProgram program,
+                                    const char *name, i32 v0, i32 v1);
+
+void vgfx_shader_program_uniform_i3(VGFX_ShaderProgram program,
+                                    const char *name, i32 v0, i32 v1, i32 v2);
+
+void vgfx_shader_program_uniform_i4(VGFX_ShaderProgram program,
+                                    const char *name, i32 v0, i32 v1, i32 v2,
+                                    i32 v3);
+
+void vgfx_shader_program_uniform_ui1(VGFX_ShaderProgram program,
+                                     const char *name, u32 v0);
+
+void vgfx_shader_program_uniform_ui2(VGFX_ShaderProgram program,
+                                     const char *name, u32 v0, u32 v1);
+
+void vgfx_shader_program_uniform_ui3(VGFX_ShaderProgram program,
+                                     const char *name, u32 v0, u32 v1, u32 v2);
+
+void vgfx_shader_program_uniform_ui4(VGFX_ShaderProgram program,
+                                     const char *name, u32 v0, u32 v1, u32 v2,
+                                     u32 v3);

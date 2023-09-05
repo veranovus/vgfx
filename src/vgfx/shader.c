@@ -126,3 +126,93 @@ void vgfx_shader_program_uniform_f4(VGFX_ShaderProgram program,
 
   glUniform4f(location, v0, v1, v2, v3);
 }
+
+void vgfx_shader_program_uniform_i1(VGFX_ShaderProgram program,
+                                    const char *name, i32 v0) {
+  i32 location = glGetUniformLocation(program, name);
+
+#ifdef DEBUG
+  _vgfx_shader_program_uniform_location_check(location, name);
+#endif
+
+  glUniform1i(location, v0);
+}
+
+void vgfx_shader_program_uniform_i2(VGFX_ShaderProgram program,
+                                    const char *name, i32 v0, i32 v1) {
+  i32 location = glGetUniformLocation(program, name);
+
+#ifdef DEBUG
+  _vgfx_shader_program_uniform_location_check(location, name);
+#endif
+
+  glUniform2i(location, v0, v1);
+}
+
+void vgfx_shader_program_uniform_i3(VGFX_ShaderProgram program,
+                                    const char *name, i32 v0, i32 v1, i32 v2) {
+  i32 location = glGetUniformLocation(program, name);
+
+#ifdef DEBUG
+  _vgfx_shader_program_uniform_location_check(location, name);
+#endif
+
+  glUniform3i(location, v0, v1, v2);
+}
+
+void vgfx_shader_program_uniform_i4(VGFX_ShaderProgram program,
+                                    const char *name, i32 v0, i32 v1, i32 v2,
+                                    i32 v3) {
+  i32 location = glGetUniformLocation(program, name);
+
+#ifdef DEBUG
+  _vgfx_shader_program_uniform_location_check(location, name);
+#endif
+
+  glUniform4i(location, v0, v1, v2, v3);
+}
+
+void vgfx_shader_program_uniform_ui1(VGFX_ShaderProgram program,
+                                     const char *name, u32 v0) {
+  i32 location = glGetUniformLocation(program, name);
+
+#ifdef DEBUG
+  _vgfx_shader_program_uniform_location_check(location, name);
+#endif
+
+  glUniform1ui(location, v0);
+}
+
+void vgfx_shader_program_uniform_ui2(VGFX_ShaderProgram program,
+                                     const char *name, u32 v0, u32 v1) {
+  i32 location = glGetUniformLocation(program, name);
+
+#ifdef DEBUG
+  _vgfx_shader_program_uniform_location_check(location, name);
+#endif
+
+  glUniform2ui(location, v0, v1);
+}
+
+void vgfx_shader_program_uniform_ui3(VGFX_ShaderProgram program,
+                                     const char *name, u32 v0, u32 v1, u32 v2) {
+  i32 location = glGetUniformLocation(program, name);
+
+#ifdef DEBUG
+  _vgfx_shader_program_uniform_location_check(location, name);
+#endif
+
+  glUniform3ui(location, v0, v1, v2);
+}
+
+void vgfx_shader_program_uniform_ui4(VGFX_ShaderProgram program,
+                                     const char *name, u32 v0, u32 v1, u32 v2,
+                                     u32 v3) {
+  i32 location = glGetUniformLocation(program, name);
+
+#ifdef DEBUG
+  _vgfx_shader_program_uniform_location_check(location, name);
+#endif
+
+  glUniform4ui(location, v0, v1, v2, v3);
+}

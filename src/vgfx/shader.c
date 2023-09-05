@@ -60,3 +60,56 @@ VGFX_ShaderProgram vgfx_shader_program_new(VGFX_Shader *vec, u32 len) {
 
   return program;
 }
+
+static inline void
+_vgfx_shader_program_uniform_location_check(i32 location, const char *name) {
+  if (location == -1) {
+    fprintf(stderr, "WARNING: Uniform at location `%s` doesn't exists.\n",
+            name);
+  }
+}
+
+void vgfx_shader_program_uniform_f1(VGFX_ShaderProgram program,
+                                    const char *name, f32 v0) {
+  i32 location = glGetUniformLocation(program, name);
+
+#ifdef DEBUG
+  _vgfx_shader_program_uniform_location_check(location, name);
+#endif
+
+  glUniform1f(location, v0);
+}
+
+void vgfx_shader_program_uniform_f2(VGFX_ShaderProgram program,
+                                    const char *name, f32 v0, f32 v1) {
+  i32 location = glGetUniformLocation(program, name);
+
+#ifdef DEBUG
+  _vgfx_shader_program_uniform_location_check(location, name);
+#endif
+
+  glUniform2f(location, v0, v1);
+}
+
+void vgfx_shader_program_uniform_f3(VGFX_ShaderProgram program,
+                                    const char *name, f32 v0, f32 v1, f32 v2) {
+  i32 location = glGetUniformLocation(program, name);
+
+#ifdef DEBUG
+  _vgfx_shader_program_uniform_location_check(location, name);
+#endif
+
+  glUniform3f(location, v0, v1, v2);
+}
+
+void vgfx_shader_program_uniform_f4(VGFX_ShaderProgram program,
+                                    const char *name, f32 v0, f32 v1, f32 v2,
+                                    f32 v3) {
+  i32 location = glGetUniformLocation(program, name);
+
+#ifdef DEBUG
+  _vgfx_shader_program_uniform_location_check(location, name);
+#endif
+
+  glUniform4f(location, v0, v1, v2, v3);
+}

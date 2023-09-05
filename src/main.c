@@ -19,7 +19,9 @@ int main(i32 argc, char *argv[]) {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, true);
+#ifdef __APPLE__
+  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
 
   String title = std_string_format("%s | %s", WINDOW_TITLE, PKG_VERSION);
 
@@ -44,6 +46,12 @@ int main(i32 argc, char *argv[]) {
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
   glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+
+  // Get maximum vertex attribute count
+  i32 max_attribs;
+  glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &max_attribs);
+
+  printf("DEBUG: Maximum available vertex attribute count: %d\n", max_attribs);
 
   // Vertex shader
   const char *vertex_shader_path = "res/shader/base.vert";
@@ -70,8 +78,9 @@ int main(i32 argc, char *argv[]) {
   glDeleteShader(vertex_shader);
   glDeleteShader(fragment_shader);
 
-  f32 vertices[] = {0.5,  0.5,  0.0, 0.5,  -0.5, 0.0,
-                    -0.5, -0.5, 0.0, -0.5, 0.5,  0.0};
+  f32 vertices[] = {0.5, 0.5, 0.0,  1.0, 0.0,  0.0,  0.5, -0.5,
+                    0.0, 0.0, 1.0,  0.0, -0.5, -0.5, 0.0, 0.0,
+                    0.0, 1.0, -0.5, 0.5, 0.0,  1.0,  1.0, 1.0};
   u32 indices[] = {0, 1, 3, 1, 2, 3};
 
   u32 vao;
@@ -88,8 +97,12 @@ int main(i32 argc, char *argv[]) {
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(f32) * 3, (void *)0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(f32) * 6, (void *)0);
   glEnableVertexAttribArray(0);
+
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(f32) * 6,
+                        (void *)(sizeof(f32) * 3));
+  glEnableVertexAttribArray(1);
 
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices,
@@ -100,17 +113,28 @@ int main(i32 argc, char *argv[]) {
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
   while (!glfwWindowShouldClose(window)) {
+    f64 time = glfwGetTime();
+
     glClearColor(0.1, 0.1, 0.1, 1.0);
     glClear(GL_COLOR_BUFFER_BIT);
 
     glUseProgram(program);
+
+    vgfx_shader_program_uniform_f1(program, "u_time", time);
+
     glBindVertexArray(vao);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
     glBindVertexArray(0);
+    glUseProgram(0);
 
     glfwSwapBuffers(window);
     glfwPollEvents();
   }
+
+  glDeleteVertexArrays(1, &vao);
+  glDeleteBuffers(1, &vbo);
+  glDeleteBuffers(1, &ebo);
 
   glfwTerminate();
 

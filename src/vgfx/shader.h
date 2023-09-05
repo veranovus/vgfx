@@ -10,7 +10,11 @@ typedef u32 VGFX_ShaderProgram;
 
 VGFX_Shader vgfx_shader_new(u32 type, const char **source);
 
+void vgfx_shader_free(VGFX_Shader shader);
+
 VGFX_ShaderProgram vgfx_shader_program_new(VGFX_Shader *vec, u32 len);
+
+void vgfx_shader_program_free(VGFX_ShaderProgram program);
 
 void vgfx_shader_program_uniform_f1(VGFX_ShaderProgram program,
                                     const char *name, f32 v0);

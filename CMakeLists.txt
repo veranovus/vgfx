@@ -1,6 +1,6 @@
 # Project configuration
 cmake_minimum_required(VERSION 3.26)
-project(cgame VERSION 0.1.1 LANGUAGES C)
+project(cgame VERSION 0.1.2 LANGUAGES C)
 
 if (CMAKE_HOST_WIN32) 
     set(LIB_PATH dep/lib/win32-amd64)
@@ -35,6 +35,12 @@ set(SOURCE_FILES
     src/vgfx/common.h
     src/vgfx/shader.h
     src/vgfx/shader.c
+    src/vgfx/texture.h
+    src/vgfx/texture.c
+
+    # stb_image
+    dep/include/stb/stb_image.h
+    dep/include/stb/stb_image.c
 )
 
 # Export values

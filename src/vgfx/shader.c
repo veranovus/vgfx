@@ -31,12 +31,15 @@ VGFX_Shader vgfx_shader_new(u32 type, const char **source) {
             info_log);
 
     std_string_free(&tmp);
+    glDeleteShader(shader);
 
     return VGFX_INVALID_SHADER_ID;
   }
 
   return shader;
 }
+
+void vgfx_shader_free(VGFX_Shader shader) { glDeleteShader(shader); }
 
 VGFX_ShaderProgram vgfx_shader_program_new(VGFX_Shader *vec, u32 len) {
   VGFX_ShaderProgram program = glCreateProgram();
@@ -47,6 +50,10 @@ VGFX_ShaderProgram vgfx_shader_program_new(VGFX_Shader *vec, u32 len) {
 
   glLinkProgram(program);
 
+  for (usize i = 0; i < len; ++i) {
+    vgfx_shader_free(vec[i]);
+  }
+
   int success;
   char info_log[512];
   glGetProgramiv(program, GL_LINK_STATUS, &success);
@@ -55,10 +62,16 @@ VGFX_ShaderProgram vgfx_shader_program_new(VGFX_Shader *vec, u32 len) {
     glGetProgramInfoLog(program, 512, NULL, info_log);
     fprintf(stderr, "ERROR: Failed to link shader program:\n%s", info_log);
 
+    glDeleteProgram(program);
+
     return VGFX_INVALID_SHADER_PROGRAM_ID;
   }
 
   return program;
+}
+
+void vgfx_shader_program_free(VGFX_ShaderProgram program) {
+  glDeleteProgram(program);
 }
 
 static inline void

@@ -1,9 +1,11 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <stb/stb_image.h>
 #include <vstd/std.h>
 
 #include "vgfx/shader.h"
+#include "vgfx/texture.h"
 
 const usize WINDOW_WIDTH = 800;
 const usize WINDOW_HEIGHT = 600;
@@ -78,9 +80,17 @@ int main(i32 argc, char *argv[]) {
   glDeleteShader(vertex_shader);
   glDeleteShader(fragment_shader);
 
-  f32 vertices[] = {0.5, 0.5, 0.0,  1.0, 0.0,  0.0,  0.5, -0.5,
-                    0.0, 0.0, 1.0,  0.0, -0.5, -0.5, 0.0, 0.0,
-                    0.0, 1.0, -0.5, 0.5, 0.0,  1.0,  1.0, 1.0};
+  // Load texture
+  stbi_set_flip_vertically_on_load(true);
+
+  const char *texture_path = "res/dummy.png";
+  VGFX_Texture *texture = vgfx_texture_new(texture_path, GL_REPEAT, GL_LINEAR);
+
+  f32 vertices[] = {
+      0.5, 0.5, 0.0,  1.0, 0.0, 0.0,  1.0,  1.0, 0.5, -0.5, 0.0,
+      0.0, 1.0, 0.0,  1.0, 0.0, -0.5, -0.5, 0.0, 0.0, 0.0,  1.0,
+      0.0, 0.0, -0.5, 0.5, 0.0, 1.0,  1.0,  1.0, 0.0, 1.0,
+  };
   u32 indices[] = {0, 1, 3, 1, 2, 3};
 
   u32 vao;
@@ -97,12 +107,18 @@ int main(i32 argc, char *argv[]) {
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(f32) * 6, (void *)0);
+  usize stride = sizeof(f32) * 8;
+
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void *)0);
   glEnableVertexAttribArray(0);
 
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(f32) * 6,
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride,
                         (void *)(sizeof(f32) * 3));
   glEnableVertexAttribArray(1);
+
+  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride,
+                        (void *)(sizeof(f32) * 6));
+  glEnableVertexAttribArray(2);
 
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices,
@@ -122,6 +138,7 @@ int main(i32 argc, char *argv[]) {
 
     vgfx_shader_program_uniform_f1(program, "u_time", time);
 
+    glBindTexture(GL_TEXTURE_2D, texture->handle);
     glBindVertexArray(vao);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
@@ -135,6 +152,9 @@ int main(i32 argc, char *argv[]) {
   glDeleteVertexArrays(1, &vao);
   glDeleteBuffers(1, &vbo);
   glDeleteBuffers(1, &ebo);
+
+  vgfx_shader_program_free(program);
+  vgfx_texture_free(texture);
 
   glfwTerminate();
 

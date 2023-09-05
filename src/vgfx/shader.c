@@ -1,5 +1,8 @@
 #include "shader.h"
 
+// VGFX_Shader
+// ===========
+
 VGFX_Shader vgfx_shader_new(u32 type, const char **source) {
   VGFX_Shader shader = glCreateShader(type);
 
@@ -41,6 +44,9 @@ VGFX_Shader vgfx_shader_new(u32 type, const char **source) {
 
 void vgfx_shader_free(VGFX_Shader shader) { glDeleteShader(shader); }
 
+// VGFX_ShaderProgram
+// ==================
+
 VGFX_ShaderProgram vgfx_shader_program_new(VGFX_Shader *vec, u32 len) {
   VGFX_ShaderProgram program = glCreateProgram();
 
@@ -74,6 +80,9 @@ void vgfx_shader_program_free(VGFX_ShaderProgram program) {
   glDeleteProgram(program);
 }
 
+// Private helper functions
+// ------------------------
+
 static inline void
 _vgfx_shader_program_uniform_location_check(i32 location, const char *name) {
   if (location == -1) {
@@ -81,6 +90,9 @@ _vgfx_shader_program_uniform_location_check(i32 location, const char *name) {
             name);
   }
 }
+
+// Float uniform helper functions
+// ------------------------------
 
 void vgfx_shader_program_uniform_f1(VGFX_ShaderProgram program,
                                     const char *name, f32 v0) {
@@ -127,6 +139,9 @@ void vgfx_shader_program_uniform_f4(VGFX_ShaderProgram program,
   glUniform4f(location, v0, v1, v2, v3);
 }
 
+// Integer uniform helper functions
+// --------------------------------
+
 void vgfx_shader_program_uniform_i1(VGFX_ShaderProgram program,
                                     const char *name, i32 v0) {
   i32 location = glGetUniformLocation(program, name);
@@ -171,6 +186,9 @@ void vgfx_shader_program_uniform_i4(VGFX_ShaderProgram program,
 
   glUniform4i(location, v0, v1, v2, v3);
 }
+
+// Unsigned integer uniform helper functions
+// -----------------------------------------
 
 void vgfx_shader_program_uniform_ui1(VGFX_ShaderProgram program,
                                      const char *name, u32 v0) {

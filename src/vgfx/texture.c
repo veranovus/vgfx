@@ -2,7 +2,10 @@
 
 #include <stb/stb_image.h>
 
-VGFX_Texture *vgfx_texture_new(const char *path, u32 wrap, u32 filter) {
+// VGFX_Texture
+// ============
+
+VGFX_Texture2D *vgfx_texture_new(const char *path, u32 wrap, u32 filter) {
   u32 handle;
   glGenTextures(1, &handle);
   glBindTexture(GL_TEXTURE_2D, handle);
@@ -33,8 +36,8 @@ VGFX_Texture *vgfx_texture_new(const char *path, u32 wrap, u32 filter) {
 
   stbi_image_free(data);
 
-  VGFX_Texture *texture = (VGFX_Texture *)malloc(sizeof(VGFX_Texture));
-  *texture = (VGFX_Texture){
+  VGFX_Texture2D *texture = (VGFX_Texture2D *)malloc(sizeof(VGFX_Texture2D));
+  *texture = (VGFX_Texture2D){
       .handle = handle,
       .width = width,
       .height = height,
@@ -44,8 +47,21 @@ VGFX_Texture *vgfx_texture_new(const char *path, u32 wrap, u32 filter) {
   return texture;
 }
 
-void vgfx_texture_free(VGFX_Texture *texture) {
+void vgfx_texture_free(VGFX_Texture2D *texture) {
   glDeleteTextures(1, &texture->handle);
 
   free(texture);
+}
+
+void vgfx_texture_bind(VGFX_Texture2D *texture, u32 slot) {
+  glActiveTexture(GL_TEXTURE0 + slot);
+  texture->slot = slot;
+
+  glBindTexture(GL_TEXTURE_2D, texture->handle);
+}
+
+void vgfx_texture_unbind(VGFX_Texture2D *texture) {
+  glActiveTexture(GL_TEXTURE0 + texture->slot);
+
+  glBindTexture(GL_TEXTURE_2D, 0);
 }

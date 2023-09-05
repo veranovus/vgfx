@@ -84,7 +84,8 @@ int main(i32 argc, char *argv[]) {
   stbi_set_flip_vertically_on_load(true);
 
   const char *texture_path = "res/dummy.png";
-  VGFX_Texture *texture = vgfx_texture_new(texture_path, GL_REPEAT, GL_LINEAR);
+  VGFX_Texture2D *texture =
+      vgfx_texture_new(texture_path, GL_REPEAT, GL_LINEAR);
 
   f32 vertices[] = {
       0.5, 0.5, 0.0,  1.0, 0.0, 0.0,  1.0,  1.0, 0.5, -0.5, 0.0,
@@ -139,11 +140,13 @@ int main(i32 argc, char *argv[]) {
     vgfx_shader_program_uniform_f1(program, "u_time", time);
     vgfx_shader_program_uniform_i1(program, "u_texture", 0);
 
-    glBindTexture(GL_TEXTURE_2D, texture->handle);
+    vgfx_texture_bind(texture, 0);
+
     glBindVertexArray(vao);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
     glBindVertexArray(0);
+    vgfx_texture_unbind(texture);
     glUseProgram(0);
 
     glfwSwapBuffers(window);

@@ -2,7 +2,7 @@
 
 Awesome game that I'm currently working on its written from scratch using only C99 and OpenGL.
 
-> Version 0.1.5
+> Version 0.1.6
 
 ## Changelog
 
@@ -14,3 +14,4 @@ Awesome game that I'm currently working on its written from scratch using only C
 - `v0.1.4`: Bind and Unbind functions for `VGFX_Texture2D`.
 - `v0.1.5`: Wrapper around `GLFW` and `GLEW` initialization.
 - `v0.1.5`: Wrapper around `GLFWWindow`.
+- `v0.1.6`: Deleted dependency `raylib`, added dependency `cglm`.

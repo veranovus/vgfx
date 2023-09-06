@@ -58,23 +58,15 @@ int main(i32 argc, char *argv[]) {
   VGFX_Texture2D *texture =
       vgfx_texture_new(texture_path, GL_REPEAT, GL_LINEAR);
 
-  // Setup MVP matrix
+  // Setup camera
+  VGFX_Camera *camera =
+      vgfx_camera_new(glm_rad(90.0), (f32)WINDOW_WIDTH, (f32)WINDOW_HEIGHT,
+                      0.01, 100.0, VGFX_CameraModePerspective);
+
+  // Setup model matrix
   mat4 model;
   glm_mat4_identity(model);
   glm_rotate(model, glm_rad(-30.0), (vec3){1.0, 0.0, 0.0});
-
-  mat4 view;
-  glm_mat4_identity(view);
-  glm_translate(view, (vec3){0.0, 0.0, -3.0});
-
-  mat4 projection;
-  glm_perspective(glm_rad(45.0), (f32)WINDOW_WIDTH / (f32)WINDOW_HEIGHT, 0.1,
-                  100.0, projection);
-
-  mat4 mvp;
-  glm_mat4_copy(projection, mvp);
-  glm_mat4_mul(mvp, view, mvp);
-  glm_mat4_mul(mvp, model, mvp);
 
   // Setup render pipeline
   f32 vertices[] = {
@@ -119,11 +111,59 @@ int main(i32 argc, char *argv[]) {
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
+  // Enable depth test
+  glEnable(GL_DEPTH_TEST);
+
+  // Enable blending
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+  f32 dt, last_frame;
+
   while (!glfwWindowShouldClose(window)) {
     f64 time = glfwGetTime();
 
+    dt = time - last_frame;
+    last_frame = time;
+
+    const f32 camera_speed = 5.0 * dt;
+
+    if (glfwGetKey(window, GLFW_KEY_W)) {
+      vec3 add;
+      glm_vec3_scale(camera->front, camera_speed, add);
+      glm_vec3_add(camera->position, add, camera->position);
+    }
+    if (glfwGetKey(window, GLFW_KEY_S)) {
+      vec3 add;
+      glm_vec3_scale(camera->front, camera_speed, add);
+      glm_vec3_sub(camera->position, add, camera->position);
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_D)) {
+      vec3 add;
+      glm_cross(camera->front, camera->up, add);
+      glm_normalize(add);
+      glm_vec3_scale(add, camera_speed, add);
+      glm_vec3_add(camera->position, add, camera->position);
+    }
+    if (glfwGetKey(window, GLFW_KEY_A)) {
+      vec3 add;
+      glm_cross(camera->front, camera->up, add);
+      glm_normalize(add);
+      glm_vec3_scale(add, camera_speed, add);
+      glm_vec3_sub(camera->position, add, camera->position);
+    }
+
     glClearColor(0.1, 0.1, 0.1, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    vec3 target;
+    glm_vec3_add(camera->position, camera->front, target);
+    glm_lookat(camera->position, target, camera->up, camera->view);
+
+    mat4 mvp;
+    vgfx_camera_get_matrix(camera, mvp);
+    glm_mat4_mul(mvp, model, mvp);
 
     glUseProgram(program);
 

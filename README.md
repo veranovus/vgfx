@@ -2,7 +2,7 @@
 
 Awesome game that I'm currently working on its written from scratch using only C99 and OpenGL.
 
-> Version 0.1.7
+> Version 0.1.8
 
 ## Changelog
 
@@ -17,3 +17,4 @@ Awesome game that I'm currently working on its written from scratch using only C
 - `v0.1.6`: Deleted dependency `raylib`, added dependency `cglm`.
 - `v0.1.7`: Added support for matrices to `ShaderProgram`'s uniform helper functions.
 - `v0.1.7`: Set up a basic `MVP` matrix.
+- `v0.1.8`: Added `VGFX_Camera` with `Ortographic` and `Perspective` projection modes.

@@ -58,6 +58,24 @@ int main(i32 argc, char *argv[]) {
   VGFX_Texture2D *texture =
       vgfx_texture_new(texture_path, GL_REPEAT, GL_LINEAR);
 
+  // Setup MVP matrix
+  mat4 model;
+  glm_mat4_identity(model);
+  glm_rotate(model, glm_rad(-30.0), (vec3){1.0, 0.0, 0.0});
+
+  mat4 view;
+  glm_mat4_identity(view);
+  glm_translate(view, (vec3){0.0, 0.0, -3.0});
+
+  mat4 projection;
+  glm_perspective(glm_rad(45.0), (f32)WINDOW_WIDTH / (f32)WINDOW_HEIGHT, 0.1,
+                  100.0, projection);
+
+  mat4 mvp;
+  glm_mat4_copy(projection, mvp);
+  glm_mat4_mul(mvp, view, mvp);
+  glm_mat4_mul(mvp, model, mvp);
+
   // Setup render pipeline
   f32 vertices[] = {
       0.5, 0.5, 0.0,  1.0, 0.0, 0.0,  1.0,  1.0, 0.5, -0.5, 0.0,
@@ -111,6 +129,7 @@ int main(i32 argc, char *argv[]) {
 
     vgfx_shader_program_uniform_f1(program, "u_time", time);
     vgfx_shader_program_uniform_i1(program, "u_texture", 0);
+    vgfx_shader_program_uniform_mat4fv(program, "u_mvp", false, &mvp[0][0]);
 
     vgfx_texture_bind(texture, 0);
 

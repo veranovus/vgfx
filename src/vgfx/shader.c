@@ -234,3 +234,122 @@ void vgfx_shader_program_uniform_ui4(VGFX_ShaderProgram program,
 
   glUniform4ui(location, v0, v1, v2, v3);
 }
+
+// Matrix uniform helper functions
+// -------------------------------
+
+void vgfx_shader_program_uniform_mat2fv(VGFX_ShaderProgram program,
+                                        const char *name, bool transpose,
+                                        const f32 *val) {
+  i32 location = glGetUniformLocation(program, name);
+
+#ifdef DEBUG
+  _vgfx_shader_program_uniform_location_check(location, name);
+#endif
+
+  glUniformMatrix2fv(location, 1, transpose, val);
+}
+
+void vgfx_shader_program_uniform_mat3fv(VGFX_ShaderProgram program,
+                                        const char *name, bool transpose,
+                                        const f32 *val) {
+
+  i32 location = glGetUniformLocation(program, name);
+
+#ifdef DEBUG
+  _vgfx_shader_program_uniform_location_check(location, name);
+#endif
+
+  glUniformMatrix3fv(location, 1, transpose, val);
+}
+
+void vgfx_shader_program_uniform_mat4fv(VGFX_ShaderProgram program,
+                                        const char *name, bool transpose,
+                                        const f32 *val) {
+
+  i32 location = glGetUniformLocation(program, name);
+
+#ifdef DEBUG
+  _vgfx_shader_program_uniform_location_check(location, name);
+#endif
+
+  glUniformMatrix4fv(location, 1, transpose, val);
+}
+
+void vgfx_shader_program_uniform_mat2x3fv(VGFX_ShaderProgram program,
+                                          const char *name, bool transpose,
+                                          const f32 *val) {
+
+  i32 location = glGetUniformLocation(program, name);
+
+#ifdef DEBUG
+  _vgfx_shader_program_uniform_location_check(location, name);
+#endif
+
+  glUniformMatrix2x3fv(location, 1, transpose, val);
+}
+
+void vgfx_shader_program_uniform_mat3x2fv(VGFX_ShaderProgram program,
+                                          const char *name, bool transpose,
+                                          const f32 *val) {
+
+  i32 location = glGetUniformLocation(program, name);
+
+#ifdef DEBUG
+  _vgfx_shader_program_uniform_location_check(location, name);
+#endif
+
+  glUniformMatrix3x2fv(location, 1, transpose, val);
+}
+
+void vgfx_shader_program_uniform_mat2x4fv(VGFX_ShaderProgram program,
+                                          const char *name, bool transpose,
+                                          const f32 *val) {
+
+  i32 location = glGetUniformLocation(program, name);
+
+#ifdef DEBUG
+  _vgfx_shader_program_uniform_location_check(location, name);
+#endif
+
+  glUniformMatrix2x4fv(location, 1, transpose, val);
+}
+
+void vgfx_shader_program_uniform_mat4x2fv(VGFX_ShaderProgram program,
+                                          const char *name, bool transpose,
+                                          const f32 *val) {
+
+  i32 location = glGetUniformLocation(program, name);
+
+#ifdef DEBUG
+  _vgfx_shader_program_uniform_location_check(location, name);
+#endif
+
+  glUniformMatrix4x2fv(location, 1, transpose, val);
+}
+
+void vgfx_shader_program_uniform_mat3x4fv(VGFX_ShaderProgram program,
+                                          const char *name, bool transpose,
+                                          const f32 *val) {
+
+  i32 location = glGetUniformLocation(program, name);
+
+#ifdef DEBUG
+  _vgfx_shader_program_uniform_location_check(location, name);
+#endif
+
+  glUniformMatrix3x4fv(location, 1, transpose, val);
+}
+
+void vgfx_shader_program_uniform_mat4x3fv(VGFX_ShaderProgram program,
+                                          const char *name, bool transpose,
+                                          const f32 *val) {
+
+  i32 location = glGetUniformLocation(program, name);
+
+#ifdef DEBUG
+  _vgfx_shader_program_uniform_location_check(location, name);
+#endif
+
+  glUniformMatrix4x3fv(location, 1, transpose, val);
+}

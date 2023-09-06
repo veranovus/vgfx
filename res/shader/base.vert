@@ -6,8 +6,10 @@ layout (location = 2) in vec2 a_tex;
 out vec3 v_col;
 out vec2 v_tex;
 
+uniform mat4 u_mvp;
+
 void main() {
-  gl_Position = vec4(a_pos, 1.0);
+  gl_Position = u_mvp * vec4(a_pos, 1.0);
   v_col = a_col;
   v_tex = a_tex;
 }

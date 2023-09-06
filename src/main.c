@@ -1,53 +1,26 @@
-#define GLEW_STATIC
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-#include <stb/stb_image.h>
-#include <vstd/std.h>
-
-#include "vgfx/shader.h"
-#include "vgfx/texture.h"
+#include "vgfx/vgfx.h"
 
 const usize WINDOW_WIDTH = 800;
 const usize WINDOW_HEIGHT = 600;
 const char *WINDOW_TITLE = "cgame";
 
-void framebuffer_size_callback(GLFWwindow *window, i32 w, i32 h) {
-  glViewport(0, 0, w, h);
-}
-
 int main(i32 argc, char *argv[]) {
 
-  glfwInit();
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-#ifdef __APPLE__
-  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
+  vgfx_initialize();
 
   String title = std_string_format("%s | %s", WINDOW_TITLE, PKG_VERSION);
 
-  GLFWwindow *window =
-      glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, title.ptr, NULL, NULL);
-  if (!window) {
-    fprintf(stderr, "ERROR: Failed to create GLFW Window.");
+  VGFX_Window *window = vgfx_window_new((VGFX_WindowDescriptor){
+      .title = title.ptr,
+      .width = WINDOW_WIDTH,
+      .height = WINDOW_HEIGHT,
+      .vsync = false,
+      .resizable = true,
+  });
 
-    glfwTerminate();
-    abort();
-  }
+  std_string_free(&title);
 
-  glfwMakeContextCurrent(window);
-
-  if (glewInit() != GLEW_OK) {
-    fprintf(stderr, "ERROR: Glew failed to initialize.");
-
-    glfwTerminate();
-    abort();
-  }
-
-  glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
-  glViewport(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+  vgfx_glew_initialize();
 
   // Get maximum vertex attribute count
   i32 max_attribs;
@@ -81,12 +54,11 @@ int main(i32 argc, char *argv[]) {
   glDeleteShader(fragment_shader);
 
   // Load texture
-  stbi_set_flip_vertically_on_load(true);
-
   const char *texture_path = "res/dummy.png";
   VGFX_Texture2D *texture =
       vgfx_texture_new(texture_path, GL_REPEAT, GL_LINEAR);
 
+  // Setup render pipeline
   f32 vertices[] = {
       0.5, 0.5, 0.0,  1.0, 0.0, 0.0,  1.0,  1.0, 0.5, -0.5, 0.0,
       0.0, 1.0, 0.0,  1.0, 0.0, -0.5, -0.5, 0.0, 0.0, 0.0,  1.0,
@@ -157,10 +129,11 @@ int main(i32 argc, char *argv[]) {
   glDeleteBuffers(1, &vbo);
   glDeleteBuffers(1, &ebo);
 
-  vgfx_shader_program_free(program);
   vgfx_texture_free(texture);
+  vgfx_shader_program_free(program);
 
-  glfwTerminate();
+  vgfx_window_free(window);
+  vgfx_terminate();
 
   return 0;
 }

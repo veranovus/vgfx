@@ -2,8 +2,8 @@
 
 #include <stb/stb_image.h>
 
-// VGFX_Texture
-// ============
+// VGFX_Texture2D
+// ==============
 
 VGFX_Texture2D *vgfx_texture_new(const char *path, u32 wrap, u32 filter) {
   u32 handle;
@@ -60,7 +60,7 @@ void vgfx_texture_bind(VGFX_Texture2D *texture, u32 slot) {
   glBindTexture(GL_TEXTURE_2D, texture->handle);
 }
 
-void vgfx_texture_unbind(VGFX_Texture2D *texture) {
+void vgfx_texture_unbind(const VGFX_Texture2D *texture) {
   glActiveTexture(GL_TEXTURE0 + texture->slot);
 
   glBindTexture(GL_TEXTURE_2D, 0);

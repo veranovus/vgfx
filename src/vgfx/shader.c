@@ -83,7 +83,7 @@ void vgfx_shader_program_free(VGFX_ShaderProgram program) {
 // Private helper functions
 // ------------------------
 
-static inline void
+static VGFX_INLINE void
 _vgfx_shader_program_uniform_location_check(i32 location, const char *name) {
   if (location == -1) {
     fprintf(stderr, "WARNING: Uniform at location `%s` doesn't exists.\n",

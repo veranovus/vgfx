@@ -2,7 +2,7 @@
 
 Awesome game that I'm currently working on its written from scratch using only C99 and OpenGL.
 
-> Version 0.1.8
+> Version 0.1.9
 
 ## Changelog
 
@@ -18,3 +18,4 @@ Awesome game that I'm currently working on its written from scratch using only C
 - `v0.1.7`: Added support for matrices to `ShaderProgram`'s uniform helper functions.
 - `v0.1.7`: Set up a basic `MVP` matrix.
 - `v0.1.8`: Added `VGFX_Camera` with `Ortographic` and `Perspective` projection modes.
+- `v0.1.9`: Switched development environment from `VS Code` to `CLion`.

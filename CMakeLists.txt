@@ -1,6 +1,6 @@
 # Project configuration
 cmake_minimum_required(VERSION 3.26)
-project(cgame VERSION 0.1.8 LANGUAGES C)
+project(cgame VERSION 0.1.9 LANGUAGES C)
 
 if (CMAKE_HOST_WIN32) 
     set(LIB_PATH dep/lib/win32-amd64)
@@ -16,38 +16,38 @@ set(INC_PATH dep/include)
 
 # Project settings
 set(CMAKE_C_STANDARD 99)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 link_directories(${LIB_PATH})
 include_directories(${INC_PATH})
-set(CMAKE_BUILD_TYPE "Debug")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ../${CMAKE_BUILD_TYPE})
-
-# Libraries
 
 # Dependency files
+set(DEPENDENCY_FILES
+        # stb_image
+        dep/include/stb/stb_image.h
+        dep/include/stb/stb_image.c
+)
 
 # Source files
 set(SOURCE_FILES
-    # src
-    src/main.c
+        # src
+        src/main.c
 
-    # vgfx
-    src/vgfx/vgfx.h
-    src/vgfx/common.h
-    src/vgfx/core.h
-    src/vgfx/core.c
-    src/vgfx/window.h
-    src/vgfx/window.c
-    src/vgfx/camera.h
-    src/vgfx/camera.c
-    src/vgfx/shader.h
-    src/vgfx/shader.c
-    src/vgfx/texture.h
-    src/vgfx/texture.c
+        # vgfx
+        src/vgfx/vgfx.h
+        src/vgfx/common.h
+        src/vgfx/core.h
+        src/vgfx/core.c
+        src/vgfx/window.h
+        src/vgfx/window.c
+        src/vgfx/camera.h
+        src/vgfx/camera.c
+        src/vgfx/shader.h
+        src/vgfx/shader.c
+        src/vgfx/texture.h
+        src/vgfx/texture.c
 
-    # stb_image
-    dep/include/stb/stb_image.h
-    dep/include/stb/stb_image.c
+        # stb_image
+        dep/include/stb/stb_image.h
+        dep/include/stb/stb_image.c
 )
 
 # Export values

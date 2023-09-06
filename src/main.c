@@ -60,19 +60,19 @@ int main(i32 argc, char *argv[]) {
 
   // Setup camera
   VGFX_Camera *camera =
-      vgfx_camera_new(glm_rad(90.0), (f32)WINDOW_WIDTH, (f32)WINDOW_HEIGHT,
-                      0.01, 100.0, VGFX_CameraModePerspective);
+      vgfx_camera_new(glm_rad(90.0f), (f32)WINDOW_WIDTH, (f32)WINDOW_HEIGHT,
+                      0.01f, 100.0f, VGFX_CameraModePerspective);
 
   // Setup model matrix
   mat4 model;
   glm_mat4_identity(model);
-  glm_rotate(model, glm_rad(-30.0), (vec3){1.0, 0.0, 0.0});
+  glm_rotate(model, glm_rad(-30.0f), (vec3){1.0f, 0.0f, 0.0f});
 
   // Setup render pipeline
   f32 vertices[] = {
-      0.5, 0.5, 0.0,  1.0, 0.0, 0.0,  1.0,  1.0, 0.5, -0.5, 0.0,
-      0.0, 1.0, 0.0,  1.0, 0.0, -0.5, -0.5, 0.0, 0.0, 0.0,  1.0,
-      0.0, 0.0, -0.5, 0.5, 0.0, 1.0,  1.0,  1.0, 0.0, 1.0,
+      0.5f, 0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  1.0f,  1.0f, 0.5f, -0.5f, 0.0f,
+      0.0f, 1.0f, 0.0f,  1.0f, 0.0f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,  1.0f,
+      0.0f, 0.0f, -0.5f, 0.5f, 0.0f, 1.0f,  1.0f,  1.0f, 0.0f, 1.0f,
   };
   u32 indices[] = {0, 1, 3, 1, 2, 3};
 
@@ -92,14 +92,14 @@ int main(i32 argc, char *argv[]) {
 
   usize stride = sizeof(f32) * 8;
 
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void *)0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, (i32) stride, (void *)0);
   glEnableVertexAttribArray(0);
 
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride,
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, (i32) stride,
                         (void *)(sizeof(f32) * 3));
   glEnableVertexAttribArray(1);
 
-  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride,
+  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, (i32) stride,
                         (void *)(sizeof(f32) * 6));
   glEnableVertexAttribArray(2);
 
@@ -118,7 +118,7 @@ int main(i32 argc, char *argv[]) {
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  f32 dt, last_frame;
+  f64 dt, last_frame;
 
   while (!glfwWindowShouldClose(window)) {
     f64 time = glfwGetTime();
@@ -126,7 +126,7 @@ int main(i32 argc, char *argv[]) {
     dt = time - last_frame;
     last_frame = time;
 
-    const f32 camera_speed = 5.0 * dt;
+    const f32 camera_speed = 5.0f * (f32) dt;
 
     if (glfwGetKey(window, GLFW_KEY_W)) {
       vec3 add;
@@ -154,7 +154,7 @@ int main(i32 argc, char *argv[]) {
       glm_vec3_sub(camera->position, add, camera->position);
     }
 
-    glClearColor(0.1, 0.1, 0.1, 1.0);
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     vec3 target;
@@ -167,7 +167,7 @@ int main(i32 argc, char *argv[]) {
 
     glUseProgram(program);
 
-    vgfx_shader_program_uniform_f1(program, "u_time", time);
+    vgfx_shader_program_uniform_f1(program, "u_time", (f32) time);
     vgfx_shader_program_uniform_i1(program, "u_texture", 0);
     vgfx_shader_program_uniform_mat4fv(program, "u_mvp", false, &mvp[0][0]);
 

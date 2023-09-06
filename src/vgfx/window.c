@@ -18,9 +18,9 @@ VGFX_Window *vgfx_window_new(VGFX_WindowDescriptor desc) {
   glfwWindowHint(GLFW_RESIZABLE, desc.resizable);
 
   VGFX_Window *window =
-      glfwCreateWindow(desc.width, desc.height, desc.title, NULL, NULL);
+      glfwCreateWindow((i32) desc.width, (i32) desc.height, desc.title, NULL, NULL);
 
-  vgfx_window_make_context_current(window, desc.width, desc.height);
+  vgfx_window_make_context_current(window, (i32) desc.width, (i32) desc.height);
 
   glfwSwapInterval(desc.vsync);
 
@@ -69,5 +69,5 @@ void vgfx_window_get_size(VGFX_Window *window, vec2 size) {
 }
 
 void vgfx_window_set_size(VGFX_Window *window, const vec2 size) {
-  glfwSetWindowSize(window, size[0], size[1]);
+  glfwSetWindowSize(window, (i32) size[0], (i32) size[1]);
 }

@@ -17,21 +17,33 @@ VGFX_Shader vgfx_shader_new(u32 type, const char **source) {
     String tmp;
     switch (type) {
     case GL_VERTEX_SHADER:
-      tmp = std_string_from("vertex");
+      tmp = std_string_from(STD_STRING_STRINGIFY(GL_VERTEX_SHADER));
       break;
-    case GL_FRAGMENT_SHADER:
-      tmp = std_string_from("fragment");
+    case GL_TESS_CONTROL_SHADER:
+      tmp = std_string_from(STD_STRING_STRINGIFY(GL_TESS_CONTROL_SHADER));
+      break;
+    case GL_TESS_EVALUATION_SHADER:
+      tmp = std_string_from(STD_STRING_STRINGIFY(GL_TESS_EVALUATION_SHADER));
       break;
     case GL_GEOMETRY_SHADER:
-      tmp = std_string_from("geometry");
+      tmp = std_string_from(STD_STRING_STRINGIFY(GL_GEOMETRY_SHADER));
+      break;
+    case GL_FRAGMENT_SHADER:
+      tmp = std_string_from(STD_STRING_STRINGIFY(GL_FRAGMENT_SHADER));
+      break;
+    case GL_COMPUTE_SHADER:
+      tmp = std_string_from(STD_STRING_STRINGIFY(GL_COMPUTE_SHADER));
       break;
     default:
+      fprintf(stderr,
+              "ERROR: Failed to compile shader unknown shader type `%d`.\n",
+              type);
+      abort();
       break;
     }
 
     glGetShaderInfoLog(shader, 512, NULL, info_log);
-    fprintf(stderr, "ERROR: Failed to compile %s shader:\n%s", tmp.ptr,
-            info_log);
+    fprintf(stderr, "ERROR: Failed to compile `%s`:\n%s", tmp.ptr, info_log);
 
     std_string_free(&tmp);
     glDeleteShader(shader);
@@ -56,6 +68,7 @@ VGFX_ShaderProgram vgfx_shader_program_new(VGFX_Shader *vec, u32 len) {
 
   glLinkProgram(program);
 
+  // Delete the shaders
   for (usize i = 0; i < len; ++i) {
     vgfx_shader_free(vec[i]);
   }

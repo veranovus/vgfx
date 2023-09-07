@@ -10,14 +10,14 @@ VGFX_Texture2D *vgfx_texture_new(const char *path, u32 wrap, u32 filter) {
   glGenTextures(1, &handle);
   glBindTexture(GL_TEXTURE_2D, handle);
 
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, (i32) wrap);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, (i32) wrap);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, (i32)wrap);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, (i32)wrap);
 
   u32 min_filter = (filter == GL_LINEAR) ? GL_LINEAR_MIPMAP_LINEAR
                                          : GL_NEAREST_MIPMAP_NEAREST;
 
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (i32) min_filter);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (i32) filter);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (i32)min_filter);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (i32)filter);
 
   i32 width, height, channel;
   u8 *data = stbi_load(path, &width, &height, &channel, 0);

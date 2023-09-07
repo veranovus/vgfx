@@ -6,7 +6,6 @@
 // =========
 
 void vgfx_initialize() {
-
   // Initialize GLFW
   if (!glfwInit()) {
     fprintf(stderr, "ERROR: Failed to initialize GLFW.\n");
@@ -23,6 +22,7 @@ void vgfx_glew_initialize() {
     fprintf(stderr, "ERROR: Failed to initialize GLEW.\n");
 
     glfwTerminate();
+
     abort();
   }
 }
@@ -36,6 +36,6 @@ void vgfx_terminate() {
 // GLFW callback functions
 // -----------------------
 
-void _vgfx_framebuffer_size_callback(VGFX_Window *window, i32 w, i32 h) {
-  vgfx_window_make_context_current(window, w, h);
+void _vgfx_framebuffer_size_callback(VGFX_WindowHandle *window, i32 w, i32 h) {
+  glViewport(0, 0, w, h);
 }

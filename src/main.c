@@ -6,6 +6,7 @@ const char *WINDOW_TITLE = "cgame";
 
 int main(i32 argc, char *argv[]) {
 
+  // VGFX setup
   vgfx_initialize();
 
   String title = std_string_format("%s | %s", WINDOW_TITLE, PKG_VERSION);
@@ -16,6 +17,7 @@ int main(i32 argc, char *argv[]) {
       .height = WINDOW_HEIGHT,
       .vsync = false,
       .resizable = true,
+      .decorated = true,
   });
 
   std_string_free(&title);
@@ -50,9 +52,6 @@ int main(i32 argc, char *argv[]) {
   VGFX_Shader shaders[] = {vertex_shader, fragment_shader};
   VGFX_ShaderProgram program = vgfx_shader_program_new(shaders, 2);
 
-  glDeleteShader(vertex_shader);
-  glDeleteShader(fragment_shader);
-
   // Load texture
   const char *texture_path = "res/dummy.png";
   VGFX_Texture2D *texture =
@@ -60,7 +59,7 @@ int main(i32 argc, char *argv[]) {
 
   // Setup camera
   VGFX_Camera *camera =
-      vgfx_camera_new(glm_rad(90.0f), (f32)WINDOW_WIDTH, (f32)WINDOW_HEIGHT,
+      vgfx_camera_new(glm_rad(45.0f), (f32)WINDOW_WIDTH, (f32)WINDOW_HEIGHT,
                       0.01f, 100.0f, VGFX_CameraModePerspective);
 
   // Setup model matrix
@@ -92,14 +91,14 @@ int main(i32 argc, char *argv[]) {
 
   usize stride = sizeof(f32) * 8;
 
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, (i32) stride, (void *)0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, (i32)stride, (void *)0);
   glEnableVertexAttribArray(0);
 
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, (i32) stride,
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, (i32)stride,
                         (void *)(sizeof(f32) * 3));
   glEnableVertexAttribArray(1);
 
-  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, (i32) stride,
+  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, (i32)stride,
                         (void *)(sizeof(f32) * 6));
   glEnableVertexAttribArray(2);
 
@@ -120,33 +119,35 @@ int main(i32 argc, char *argv[]) {
 
   f64 dt, last_frame;
 
-  while (!glfwWindowShouldClose(window)) {
+  while (!vgfx_window_get_window_close(window)) {
+    // Time and delta time
     f64 time = glfwGetTime();
 
     dt = time - last_frame;
     last_frame = time;
 
-    const f32 camera_speed = 5.0f * (f32) dt;
+    // Camera movement
+    const f32 camera_speed = 5.0f * (f32)dt;
 
-    if (glfwGetKey(window, GLFW_KEY_W)) {
+    if (glfwGetKey(window->handle, GLFW_KEY_W)) {
       vec3 add;
       glm_vec3_scale(camera->front, camera_speed, add);
       glm_vec3_add(camera->position, add, camera->position);
     }
-    if (glfwGetKey(window, GLFW_KEY_S)) {
+    if (glfwGetKey(window->handle, GLFW_KEY_S)) {
       vec3 add;
       glm_vec3_scale(camera->front, camera_speed, add);
       glm_vec3_sub(camera->position, add, camera->position);
     }
 
-    if (glfwGetKey(window, GLFW_KEY_D)) {
+    if (glfwGetKey(window->handle, GLFW_KEY_D)) {
       vec3 add;
       glm_cross(camera->front, camera->up, add);
       glm_normalize(add);
       glm_vec3_scale(add, camera_speed, add);
       glm_vec3_add(camera->position, add, camera->position);
     }
-    if (glfwGetKey(window, GLFW_KEY_A)) {
+    if (glfwGetKey(window->handle, GLFW_KEY_A)) {
       vec3 add;
       glm_cross(camera->front, camera->up, add);
       glm_normalize(add);
@@ -154,9 +155,7 @@ int main(i32 argc, char *argv[]) {
       glm_vec3_sub(camera->position, add, camera->position);
     }
 
-    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+    // Calculate camera target and mvp matrix
     vec3 target;
     glm_vec3_add(camera->position, camera->front, target);
     glm_lookat(camera->position, target, camera->up, camera->view);
@@ -165,9 +164,13 @@ int main(i32 argc, char *argv[]) {
     vgfx_camera_get_matrix(camera, mvp);
     glm_mat4_mul(mvp, model, mvp);
 
+    // Render the scene
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     glUseProgram(program);
 
-    vgfx_shader_program_uniform_f1(program, "u_time", (f32) time);
+    vgfx_shader_program_uniform_f1(program, "u_time", (f32)time);
     vgfx_shader_program_uniform_i1(program, "u_texture", 0);
     vgfx_shader_program_uniform_mat4fv(program, "u_mvp", false, &mvp[0][0]);
 
@@ -180,17 +183,20 @@ int main(i32 argc, char *argv[]) {
     vgfx_texture_unbind(texture);
     glUseProgram(0);
 
-    glfwSwapBuffers(window);
+    glfwSwapBuffers(window->handle);
     glfwPollEvents();
   }
 
+  // Delete render pipeline
   glDeleteVertexArrays(1, &vao);
   glDeleteBuffers(1, &vbo);
   glDeleteBuffers(1, &ebo);
 
+  // Free resources
   vgfx_texture_free(texture);
   vgfx_shader_program_free(program);
 
+  // Free the vgfx
   vgfx_window_free(window);
   vgfx_terminate();
 

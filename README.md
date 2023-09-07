@@ -2,7 +2,7 @@
 
 Awesome game that I'm currently working on its written from scratch using only C99 and OpenGL.
 
-> Version 0.1.9
+> Version 0.2.0
 
 ## Changelog
 
@@ -19,3 +19,5 @@ Awesome game that I'm currently working on its written from scratch using only C
 - `v0.1.7`: Set up a basic `MVP` matrix.
 - `v0.1.8`: Added `VGFX_Camera` with `Ortographic` and `Perspective` projection modes.
 - `v0.1.9`: Switched development environment from `VS Code` to `CLion`.
+- `v0.2.0`: Changed underlying implementation for `VGFX_Window`, it's no longer just a typedef for `GLFWwindow`.
+- `v0.2.0`: General code refactoring.

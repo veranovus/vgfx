@@ -1,19 +1,18 @@
+#include "vgfx/util/camera_3d.h"
 #include "vgfx/vgfx.h"
 
 const usize WINDOW_WIDTH = 800;
 const usize WINDOW_HEIGHT = 600;
 const char *WINDOW_TITLE = "cgame";
 
-static VGFX_Camera *s_camera = NULL;
-
-static bool s_flight_mode = false;
+static VGFX_Camera3D *s_camera = NULL;
 
 void key_callback(VGFX_WindowHandle *window, i32 key, i32 scancode, i32 action,
                   i32 mode) {
   if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-    s_flight_mode = !s_flight_mode;
+    s_camera->editor_mode = !s_camera->editor_mode;
 
-    if (s_flight_mode) {
+    if (s_camera->editor_mode) {
       glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     } else {
       glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
@@ -22,76 +21,23 @@ void key_callback(VGFX_WindowHandle *window, i32 key, i32 scancode, i32 action,
 }
 
 void cursor_pos_callback(VGFX_WindowHandle *window, f64 x, f64 y) {
-  static bool first = true;
-  static f64 last_x, last_y;
-  static vec3 quaternion = {0.0f, -90.0f, 0.0f};
-
-  const f32 sensivity = 0.1f;
-
-  if (first) {
-    last_x = x;
-    last_y = y;
-    first = false;
-  }
-
-  f32 offset_x = (f32)(x - last_x) * sensivity;
-  f32 offset_y = (f32)(last_y - y) * sensivity;
-  last_x = x;
-  last_y = y;
-
-  if (!s_camera || !s_flight_mode) {
-    return;
-  }
-
-  quaternion[1] += offset_x;
-  quaternion[0] += offset_y;
-
-  if (quaternion[0] > 89.0f) {
-    quaternion[0] = 89.0f;
-  }
-  if (quaternion[0] < -89.0f) {
-    quaternion[0] = -89.0f;
-  }
-
-  vec3 direction;
-  direction[0] = cosf(glm_rad(quaternion[1])) * cosf(glm_rad(quaternion[0]));
-  direction[1] = sinf(glm_rad(quaternion[0]));
-  direction[2] = sinf(glm_rad(quaternion[1])) * cosf(glm_rad(quaternion[0]));
-  glm_normalize_to(direction, s_camera->front);
+  vgfx_camera3d_respond_cursor(s_camera, (f32)x, (f32)y);
 }
 
-void camera_movement(VGFX_Camera *camera, VGFX_Window *window, f64 dt) {
-  const f32 camera_speed = 5.0f * (f32)dt;
-
+void camera_movement(VGFX_Camera3D *camera, VGFX_Window *window, f64 dt) {
   if (glfwGetKey(window->handle, GLFW_KEY_W)) {
-    vec3 add;
-    glm_vec3_scale(camera->front, camera_speed, add);
-    glm_vec3_add(camera->position, add, camera->position);
+    vgfx_camera3d_respond_key(camera, GLFW_KEY_W, dt);
   }
   if (glfwGetKey(window->handle, GLFW_KEY_S)) {
-    vec3 add;
-    glm_vec3_scale(camera->front, camera_speed, add);
-    glm_vec3_sub(camera->position, add, camera->position);
+    vgfx_camera3d_respond_key(camera, GLFW_KEY_S, dt);
   }
 
   if (glfwGetKey(window->handle, GLFW_KEY_D)) {
-    vec3 add;
-    glm_cross(camera->front, camera->up, add);
-    glm_normalize(add);
-    glm_vec3_scale(add, camera_speed, add);
-    glm_vec3_add(camera->position, add, camera->position);
+    vgfx_camera3d_respond_key(camera, GLFW_KEY_D, dt);
   }
   if (glfwGetKey(window->handle, GLFW_KEY_A)) {
-    vec3 add;
-    glm_cross(camera->front, camera->up, add);
-    glm_normalize(add);
-    glm_vec3_scale(add, camera_speed, add);
-    glm_vec3_sub(camera->position, add, camera->position);
+    vgfx_camera3d_respond_key(camera, GLFW_KEY_A, dt);
   }
-
-  vec3 target;
-  glm_vec3_add(s_camera->position, s_camera->front, target);
-  glm_lookat(s_camera->position, target, s_camera->up, s_camera->view);
 }
 
 int main(i32 argc, char *argv[]) {
@@ -113,8 +59,6 @@ int main(i32 argc, char *argv[]) {
   std_string_free(&title);
 
   vgfx_glew_initialize();
-
-  // Lock cursor to the game window
 
   // Set mouse movement callback
   glfwSetCursorPosCallback(window->handle, cursor_pos_callback);
@@ -156,9 +100,8 @@ int main(i32 argc, char *argv[]) {
       vgfx_texture_new(texture_path, GL_REPEAT, GL_LINEAR);
 
   // Setup camera
-  s_camera =
-      vgfx_camera_new(glm_rad(45.0f), (f32)WINDOW_WIDTH, (f32)WINDOW_HEIGHT,
-                      0.01f, 100.0f, VGFX_CameraModePerspective);
+  s_camera = vgfx_camera3d_new(glm_rad(45.0f), (f32)WINDOW_WIDTH,
+                               (f32)WINDOW_HEIGHT, 0.01f, 100.0f);
 
   // Setup model matrix
   mat4 model;
@@ -225,13 +168,14 @@ int main(i32 argc, char *argv[]) {
     last_frame = time;
 
     // Camera movement
-    if (s_flight_mode) {
-      camera_movement(s_camera, window, dt);
-    }
+    camera_movement(s_camera, window, dt);
 
-    // Calculate camera target and mvp matrix
+    // Update camera view
+    vgfx_camera_update_view(s_camera->camera);
+
+    // Calculate mvp matrix
     mat4 mvp;
-    vgfx_camera_get_matrix(s_camera, mvp);
+    vgfx_camera_get_matrix(s_camera->camera, mvp);
     glm_mat4_mul(mvp, model, mvp);
 
     // Render the scene
@@ -267,6 +211,7 @@ int main(i32 argc, char *argv[]) {
   vgfx_shader_program_free(program);
 
   // Free the vgfx
+  vgfx_camera3d_free(s_camera);
   vgfx_window_free(window);
   vgfx_terminate();
 

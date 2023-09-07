@@ -9,11 +9,20 @@ VGFX_Camera *vgfx_camera_new(f32 fov, f32 width, f32 height, f32 near, f32 far,
   *camera = (VGFX_Camera){
       .position = {0.0f, 0.0f, 0.0f},
       .front = {0.0f, 0.0f, -1.0f},
-      .up = {0.0f, 1.0f, 0.0f},
+      .world_up = {0.0f, 1.0f, 0.0f},
   };
 
+  // Set camera's up vector
+  glm_vec3_copy(camera->world_up, camera->up);
+
+  // Set camera's right vector
+  glm_vec3_cross(camera->front, camera->up, camera->right);
+  glm_vec3_normalize(camera->right);
+
+  // Create projection matrix
   vgfx_camera_update_projection(camera, fov, width, height, near, far, mode);
 
+  // Create view matrix
   glm_lookat(camera->position, camera->front, camera->up, camera->view);
 
   return camera;
@@ -21,8 +30,8 @@ VGFX_Camera *vgfx_camera_new(f32 fov, f32 width, f32 height, f32 near, f32 far,
 
 void vgfx_camera_free(VGFX_Camera *camera) { free(camera); }
 
-// Camera helper functions
-// -----------------------
+// Camera Projection & View functions
+// ----------------------------------
 
 void vgfx_camera_update_projection(VGFX_Camera *camera, f32 fov, f32 width,
                                    f32 height, f32 near, f32 far,
@@ -52,8 +61,9 @@ void vgfx_camera_update_projection(VGFX_Camera *camera, f32 fov, f32 width,
 }
 
 void vgfx_camera_update_view(VGFX_Camera *camera) {
-  fprintf(stderr, "ERROR: `@%s` is unimplemented.\n", __func__);
-  abort();
+  vec3 target;
+  glm_vec3_add(camera->position, camera->front, target);
+  glm_lookat(camera->position, target, camera->up, camera->view);
 }
 
 // Camera helper functions

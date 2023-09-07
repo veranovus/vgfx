@@ -1,16 +1,16 @@
 # Project configuration
 cmake_minimum_required(VERSION 3.26)
-project(cgame VERSION 0.2.0 LANGUAGES C)
+project(cgame VERSION 0.2.1 LANGUAGES C)
 
-if (CMAKE_HOST_WIN32) 
+if (CMAKE_HOST_WIN32)
     set(LIB_PATH dep/lib/win32-amd64)
-elseif(CMAKE_HOST_LINUX)
+elseif (CMAKE_HOST_LINUX)
     set(LIB_PATH dep/lib/linux-amd64)
-elseif(CMAKE_HOST_APPLE)
+elseif (CMAKE_HOST_APPLE)
     set(LIB_PATH dep/lib/macos-arm64)
-else()
+else ()
     message(FATAL_ERROR "Unsupported operating system or architecture.")
-endif()
+endif ()
 
 set(INC_PATH dep/include)
 

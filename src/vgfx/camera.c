@@ -6,7 +6,6 @@
 VGFX_Camera *vgfx_camera_new(f32 fov, f32 width, f32 height, f32 near, f32 far,
                              VGFX_CameraMode mode) {
   VGFX_Camera *camera = (VGFX_Camera *)malloc(sizeof(VGFX_Camera));
-
   *camera = (VGFX_Camera){
       .position = {0.0f, 0.0f, 0.0f},
       .front = {0.0f, 0.0f, -1.0f},

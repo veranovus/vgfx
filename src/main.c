@@ -5,6 +5,10 @@ const usize WINDOW_WIDTH = 800;
 const usize WINDOW_HEIGHT = 600;
 const char *WINDOW_TITLE = "cgame";
 
+const char *FRAG_SHADER_PATH = "res/shader/base.frag";
+const char *VERT_SHADER_PATH = "res/shader/base.vert";
+const char *TEST_TEXTURE_PATH = "res/dummy.png";
+
 static VGFX_Camera3D *s_camera = NULL;
 
 void key_callback(VGFX_WindowHandle *window, i32 key, i32 scancode, i32 action,
@@ -58,14 +62,6 @@ int main(i32 argc, char *argv[]) {
 
   std_string_free(&title);
 
-  vgfx_glew_initialize();
-
-  // Set mouse movement callback
-  glfwSetCursorPosCallback(window->handle, cursor_pos_callback);
-
-  // Set key callback
-  glfwSetKeyCallback(window->handle, key_callback);
-
   // Get maximum vertex attribute count
   i32 max_attribs;
   glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &max_attribs);
@@ -73,8 +69,7 @@ int main(i32 argc, char *argv[]) {
   printf("DEBUG: Maximum available vertex attribute count: %d\n", max_attribs);
 
   // Vertex shader
-  const char *vertex_shader_path = "res/shader/base.vert";
-  String vertex_shader_source = std_fs_read_file(vertex_shader_path);
+  String vertex_shader_source = std_fs_read_file(VERT_SHADER_PATH);
 
   VGFX_Shader vertex_shader = vgfx_shader_new(
       GL_VERTEX_SHADER, (const char **)&vertex_shader_source.ptr);
@@ -82,8 +77,7 @@ int main(i32 argc, char *argv[]) {
   std_string_free(&vertex_shader_source);
 
   // Fragment shader
-  const char *fragment_shader_path = "res/shader/base.frag";
-  String fragment_shader_source = std_fs_read_file(fragment_shader_path);
+  String fragment_shader_source = std_fs_read_file(FRAG_SHADER_PATH);
 
   VGFX_Shader fragment_shader = vgfx_shader_new(
       GL_FRAGMENT_SHADER, (const char **)&fragment_shader_source.ptr);
@@ -95,9 +89,8 @@ int main(i32 argc, char *argv[]) {
   VGFX_ShaderProgram program = vgfx_shader_program_new(shaders, 2);
 
   // Load texture
-  const char *texture_path = "res/dummy.png";
   VGFX_Texture2D *texture =
-      vgfx_texture_new(texture_path, GL_REPEAT, GL_LINEAR);
+      vgfx_texture_new(TEST_TEXTURE_PATH, GL_REPEAT, GL_LINEAR);
 
   // Setup camera
   s_camera = vgfx_camera3d_new(glm_rad(45.0f), (f32)WINDOW_WIDTH,
@@ -151,13 +144,6 @@ int main(i32 argc, char *argv[]) {
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-  // Enable depth test
-  glEnable(GL_DEPTH_TEST);
-
-  // Enable blending
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
   f64 dt, last_frame;
 
   while (!vgfx_window_get_window_close(window)) {
@@ -209,9 +195,9 @@ int main(i32 argc, char *argv[]) {
   // Free resources
   vgfx_texture_free(texture);
   vgfx_shader_program_free(program);
+  vgfx_camera3d_free(s_camera);
 
   // Free the vgfx
-  vgfx_camera3d_free(s_camera);
   vgfx_window_free(window);
   vgfx_terminate();
 

@@ -1,6 +1,13 @@
 #include "core.h"
 
+#include "window.h"
+
 #include <stb/stb_image.h>
+
+// Static variables
+// ----------------
+
+static bool s_vgfx_core_glew_initialized = false;
 
 // VGFX_Core
 // =========
@@ -17,7 +24,23 @@ void vgfx_initialize() {
   stbi_set_flip_vertically_on_load(true);
 }
 
-void vgfx_glew_initialize() {
+void vgfx_terminate() {
+
+  // Terminate VGFX_Window
+  _vgfx_window_terminate();
+
+  // Terminate GLFW
+  glfwTerminate();
+}
+
+// OpenGL helper functions
+// -----------------------
+
+void _vgfx_glew_initialize() {
+  if (s_vgfx_core_glew_initialized) {
+    return;
+  }
+
   if (glewInit() != GLEW_OK) {
     fprintf(stderr, "ERROR: Failed to initialize GLEW.\n");
 
@@ -25,17 +48,14 @@ void vgfx_glew_initialize() {
 
     abort();
   }
-}
 
-void vgfx_terminate() {
+  // Enable depth test
+  glEnable(GL_DEPTH_TEST);
 
-  // Terminate GLFW
-  glfwTerminate();
-}
+  // Enable blending
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-// GLFW callback functions
-// -----------------------
-
-void _vgfx_framebuffer_size_callback(VGFX_WindowHandle *window, i32 w, i32 h) {
-  glViewport(0, 0, w, h);
+  // Set s_vgfx_core_glew_initialized to true
+  s_vgfx_core_glew_initialized = true;
 }

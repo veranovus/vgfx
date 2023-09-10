@@ -141,12 +141,14 @@ typedef enum VGFX_KeyState {
 
 typedef struct VGFX_KeyInput {
   VGFX_Key key;
-  VGFX_KeyState state;
+  VGFX_KeyState crnt_state;
+  VGFX_KeyState prev_state;
 } VGFX_KeyInput;
 
 typedef struct VGFX_CursorInput {
   vec2 current;
   vec2 offset;
+  bool moved;
 } VGFX_CursorInput;
 
 typedef struct VGFX_Input {
@@ -163,6 +165,26 @@ void _vgfx_input_free(VGFX_Input *input);
 
 // Helper functions
 // ----------------
+
+// Returns true if the key is currently pressed
+bool vgfx_input_is_key_down(const VGFX_Input *input, VGFX_Key key);
+
+// Returns true if the key is currently released
+bool vgfx_input_is_key_up(const VGFX_Input *input, VGFX_Key key);
+
+// Returns true if the key is just pressed
+bool vgfx_input_is_key_pressed(const VGFX_Input *input, VGFX_Key key);
+
+// Returns true if the key is just released
+bool vgfx_input_is_key_released(const VGFX_Input *input, VGFX_Key key);
+
+// Returns the cursor pos and cursor offset since last frame.
+const VGFX_CursorInput *vgfx_input_get_cursor(const VGFX_Input *input);
+
+// Input functions
+// ----------------
+
+void _vgfx_input_clear(VGFX_Input *input);
 
 void _vgfx_input_poll_keys(VGFX_Input *input, VGFX_Key key,
                            VGFX_KeyState state);

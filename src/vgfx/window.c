@@ -122,7 +122,10 @@ void vgfx_window_swap_buffers(VGFX_Window *window) {
   glfwSwapBuffers(window->handle);
 }
 
-void vgfx_window_poll_events(VGFX_Window *window) { glfwPollEvents(); }
+void vgfx_window_poll_events(VGFX_Window *window) {
+  _vgfx_input_clear(window->input);
+  glfwPollEvents();
+}
 
 // OpenGL context
 // --------------

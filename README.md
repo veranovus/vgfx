@@ -2,7 +2,7 @@
 
 Awesome game that I'm currently working on it's written from scratch using only C99 and OpenGL.
 
-> Version 0.2.3
+> Version 0.2.4
 
 ## Changelog
 
@@ -13,3 +13,6 @@ Awesome game that I'm currently working on it's written from scratch using only 
 - `v0.2.3`: Changed how `GLEW` is initialized.
 - `v0.2.3`: Implemented `VGFX_Input`.
 - `v0.2.3`: Implemented `VGFX_Window` based input handling system.
+- `v0.2.4`: Fixed some bugs related to `VGFX_Input` and `VGFX_Window`.
+- `v0.2.4`: Added more input functions to `VGFX_Input`.
+- `v0.2.4`: Refactored `VGFX_Camera3D` to utilize the new input system.

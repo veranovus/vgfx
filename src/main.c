@@ -1,6 +1,12 @@
 #include "vgfx/util/camera_3d.h"
 #include "vgfx/vgfx.h"
 
+/*
+ * [X] TODO : Refactor `VGFX_Camera3D` to utilize new input system.
+ * [_] TODO : Add more callback functions to `VGFX_Window`.
+ * [X] TODO : Improve `VGFX_Input`.
+ */
+
 const usize WINDOW_WIDTH = 800;
 const usize WINDOW_HEIGHT = 600;
 const char *WINDOW_TITLE = "cgame";
@@ -10,39 +16,7 @@ const char *VERT_SHADER_PATH = "res/shader/base.vert";
 const char *TEST_TEXTURE_PATH = "res/dummy.png";
 
 static VGFX_Camera3D *s_camera = NULL;
-
-void key_callback(VGFX_WindowHandle *window, i32 key, i32 scancode, i32 action,
-                  i32 mode) {
-  if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
-    s_camera->editor_mode = !s_camera->editor_mode;
-
-    if (s_camera->editor_mode) {
-      glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    } else {
-      glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-    }
-  }
-}
-
-void cursor_pos_callback(VGFX_WindowHandle *window, f64 x, f64 y) {
-  vgfx_camera3d_respond_cursor(s_camera, (f32)x, (f32)y);
-}
-
-void camera_movement(VGFX_Camera3D *camera, VGFX_Window *window, f64 dt) {
-  if (glfwGetKey(window->handle, GLFW_KEY_W)) {
-    vgfx_camera3d_respond_key(camera, GLFW_KEY_W, dt);
-  }
-  if (glfwGetKey(window->handle, GLFW_KEY_S)) {
-    vgfx_camera3d_respond_key(camera, GLFW_KEY_S, dt);
-  }
-
-  if (glfwGetKey(window->handle, GLFW_KEY_D)) {
-    vgfx_camera3d_respond_key(camera, GLFW_KEY_D, dt);
-  }
-  if (glfwGetKey(window->handle, GLFW_KEY_A)) {
-    vgfx_camera3d_respond_key(camera, GLFW_KEY_A, dt);
-  }
-}
+static bool s_editor_mode = false;
 
 int main(i32 argc, char *argv[]) {
 
@@ -153,8 +127,19 @@ int main(i32 argc, char *argv[]) {
     dt = time - last_frame;
     last_frame = time;
 
+    // Set s_editor_mode
+    if (vgfx_input_is_key_pressed(window->input, VGFX_Key_ESCAPE)) {
+      s_editor_mode = !s_editor_mode;
+
+      if (!s_editor_mode) {
+        glfwSetInputMode(window->handle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+      } else {
+        glfwSetInputMode(window->handle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+      }
+    }
+
     // Camera movement
-    camera_movement(s_camera, window, dt);
+    vgfx_camera3d_handle_input(s_camera, window->input, dt, s_editor_mode);
 
     // Update camera view
     vgfx_camera_update_view(s_camera->camera);
@@ -183,8 +168,8 @@ int main(i32 argc, char *argv[]) {
     vgfx_texture_unbind(texture);
     glUseProgram(0);
 
-    glfwSwapBuffers(window->handle);
-    glfwPollEvents();
+    vgfx_window_swap_buffers(window);
+    vgfx_window_poll_events(window);
   }
 
   // Delete render pipeline

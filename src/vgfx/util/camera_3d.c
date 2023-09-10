@@ -13,8 +13,6 @@ VGFX_Camera3D *vgfx_camera3d_new(f32 fov, f32 width, f32 height, f32 near,
       .pitch = 0.0f,
       .speed = VGFX_CAMERA3D_DEFAULT_SPEED,
       .sensivity = VGFX_CAMERA3D_DEFAULT_SENSIVITY,
-      .editor_mode = false,
-      ._cursor_last = {0.0f, 0.0f},
   };
 
   vgfx_camera3d_update_vectors(camera);
@@ -26,6 +24,14 @@ void vgfx_camera3d_free(VGFX_Camera3D *camera) {
   vgfx_camera_free(camera->camera);
 
   free(camera);
+}
+
+void vgfx_camera3d_handle_input(VGFX_Camera3D *camera, const VGFX_Input *input,
+                                f64 dt, bool editor_mode) {
+  _vgfx_camera3d_key_input(camera, input, dt, editor_mode);
+  _vgfx_camera3d_cursor_input(camera, input, editor_mode);
+
+  vgfx_camera3d_update_vectors(camera);
 }
 
 // Helper functions
@@ -53,8 +59,9 @@ void vgfx_camera3d_update_vectors(VGFX_Camera3D *camera) {
 // Camera input functions
 // ----------------------
 
-void vgfx_camera3d_respond_key(VGFX_Camera3D *camera, i32 key, f64 dt) {
-  if (!camera->editor_mode) {
+void _vgfx_camera3d_key_input(VGFX_Camera3D *camera, const VGFX_Input *input,
+                              f64 dt, bool editor_mode) {
+  if (!editor_mode) {
     return;
   }
 
@@ -62,38 +69,39 @@ void vgfx_camera3d_respond_key(VGFX_Camera3D *camera, i32 key, f64 dt) {
 
   vec3 change;
 
-  if (key == GLFW_KEY_W) {
+  if (vgfx_input_is_key_down(input, VGFX_Key_W)) {
     glm_vec3_scale(camera->camera->front, velocity, change);
     glm_vec3_add(camera->camera->position, change, camera->camera->position);
   }
-  if (key == GLFW_KEY_S) {
+  if (vgfx_input_is_key_down(input, VGFX_Key_S)) {
     glm_vec3_scale(camera->camera->front, velocity, change);
     glm_vec3_sub(camera->camera->position, change, camera->camera->position);
   }
 
-  if (key == GLFW_KEY_D) {
+  if (vgfx_input_is_key_down(input, VGFX_Key_D)) {
     glm_vec3_scale(camera->camera->right, velocity, change);
     glm_vec3_add(camera->camera->position, change, camera->camera->position);
   }
-  if (key == GLFW_KEY_A) {
+  if (vgfx_input_is_key_down(input, VGFX_Key_A)) {
     glm_vec3_scale(camera->camera->right, velocity, change);
     glm_vec3_sub(camera->camera->position, change, camera->camera->position);
   }
 }
 
-void vgfx_camera3d_respond_cursor(VGFX_Camera3D *camera, f32 x, f32 y) {
-  f32 x_offset = (x - camera->_cursor_last[0]) * camera->sensivity;
-  f32 y_offset = (camera->_cursor_last[1] - y) * camera->sensivity;
-
-  camera->_cursor_last[0] = x;
-  camera->_cursor_last[1] = y;
-
-  if (!camera->editor_mode) {
+void _vgfx_camera3d_cursor_input(VGFX_Camera3D *camera, const VGFX_Input *input,
+                                 bool editor_mode) {
+  if (!editor_mode) {
     return;
   }
 
-  camera->yaw += x_offset;
-  camera->pitch += y_offset;
+  const VGFX_CursorInput *cursor = vgfx_input_get_cursor(input);
+
+  if (cursor->moved) {
+    return;
+  }
+
+  camera->yaw += cursor->offset[0] * camera->sensivity;
+  camera->pitch += cursor->offset[1] * camera->sensivity;
 
   if (camera->pitch > 89.0f) {
     camera->pitch = 89.0f;
@@ -101,6 +109,4 @@ void vgfx_camera3d_respond_cursor(VGFX_Camera3D *camera, f32 x, f32 y) {
   if (camera->pitch < -89.0f) {
     camera->pitch = -89.0f;
   }
-
-  vgfx_camera3d_update_vectors(camera);
 }

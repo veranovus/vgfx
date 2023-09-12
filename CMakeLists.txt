@@ -1,6 +1,6 @@
 # Project configuration
 cmake_minimum_required(VERSION 3.26)
-project(cgame VERSION 0.2.4 LANGUAGES C)
+project(cgame VERSION 0.2.5 LANGUAGES C)
 
 if (CMAKE_HOST_WIN32)
     set(LIB_PATH dep/lib/win32-amd64)
@@ -37,7 +37,6 @@ set(SOURCE_FILES
         src/vgfx/core.h
         src/vgfx/core.c
         src/vgfx/input.h
-        src/vgfx/input.c
         src/vgfx/window.h
         src/vgfx/window.c
         src/vgfx/camera.h

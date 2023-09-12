@@ -127,19 +127,30 @@ int main(i32 argc, char *argv[]) {
     dt = time - last_frame;
     last_frame = time;
 
-    // Set s_editor_mode
-    if (vgfx_input_is_key_pressed(window->input, VGFX_Key_ESCAPE)) {
-      s_editor_mode = !s_editor_mode;
+    // Get WindowEvents
+    STD_Vector(VGFX_WindowEvent) events = vgfx_window_get_events(window);
 
-      if (!s_editor_mode) {
-        glfwSetInputMode(window->handle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-      } else {
-        glfwSetInputMode(window->handle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    // Set s_editor_mode
+    std_vector_foreach(VGFX_WindowEvent, events, {
+      if (_iter->type != VGFX_WindowEventType_Key) {
+        continue;
       }
-    }
+
+      if (_iter->key_id == VGFX_Key_ESCAPE &&
+          _iter->key_state == VGFX_KeyState_Press) {
+
+        s_editor_mode = !s_editor_mode;
+
+        if (!s_editor_mode) {
+          glfwSetInputMode(window->handle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        } else {
+          glfwSetInputMode(window->handle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        }
+      }
+    });
 
     // Camera movement
-    vgfx_camera3d_handle_input(s_camera, window->input, dt, s_editor_mode);
+    vgfx_camera3d_handle_input(s_camera, window, dt, s_editor_mode);
 
     // Update camera view
     vgfx_camera_update_view(s_camera->camera);

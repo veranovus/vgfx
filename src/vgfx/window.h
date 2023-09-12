@@ -3,6 +3,39 @@
 #include "common.h"
 #include "input.h"
 
+// VGFX_WindowEvent
+// ================
+
+typedef enum VGFX_WindowEventType {
+  VGFX_WindowEventType_Key,
+  VGFX_WindowEventType_Cursor,
+  VGFX_WindowEventType_Mouse,
+  VGFX_WindowEventType_Window,
+} VGFX_WindowEventType;
+
+typedef struct VGFX_WindowEvent {
+  VGFX_WindowEventType type;
+  // Key
+  VGFX_Key key_id;
+  VGFX_KeyState key_state;
+  // Cursor
+  vec2 cursor_pos;
+  vec2 cursor_offset;
+  // Mouse
+  usize mouse_button;
+  VGFX_ButtonState mouse_state;
+  // Window
+  bool window_close;
+} VGFX_WindowEvent;
+
+// VGFX_WindowHandle
+// =================
+
+typedef GLFWwindow VGFX_WindowHandle;
+
+// VGFX_Window
+// ===========
+
 typedef struct VGFX_WindowDescriptor {
   const char *title;
   u32 width;
@@ -12,18 +45,19 @@ typedef struct VGFX_WindowDescriptor {
   bool decorated;
 } VGFX_WindowDescriptor;
 
-typedef GLFWwindow VGFX_WindowHandle;
-
 typedef struct VGFX_Window {
+  // Window
   VGFX_WindowHandle *handle;
   u32 width;
   u32 height;
   bool vsync;
-  VGFX_Input *input;
+  // WindowEvents
+  vec2 _cursor_last;
+  STD_Vector(VGFX_WindowEvent) _events;
 } VGFX_Window;
 
 // VGFX_WindowHandle
-// -----------------
+// =================
 
 // Returns a pointer to window that given handle is bound to. This function will
 // panic if it fails to retrieve the window.
@@ -67,6 +101,18 @@ bool vgfx_window_get_window_close(const VGFX_Window *window);
 
 void vgfx_window_set_window_close(VGFX_Window *window, bool close);
 
+// WindowEvent & Input functions
+// -----------------------------
+
+VGFX_KeyState vgfx_window_get_key(const VGFX_Window *window, VGFX_Key key);
+
+VGFX_ButtonState vgfx_window_get_mouse_button(const VGFX_Window *window,
+                                              usize button);
+
+void vgfx_window_get_cursor(const VGFX_Window *window, vec2 position);
+
+STD_Vector(VGFX_WindowEvent) vgfx_window_get_events(const VGFX_Window *window);
+
 // GLFW callback functions
 // -----------------------
 
@@ -77,3 +123,6 @@ void _vgfx_window_key_callback(VGFX_WindowHandle *handle, i32 key, i32 scancode,
                                i32 action, i32 mode);
 
 void _vgfx_window_cursor_pos_callback(VGFX_WindowHandle *handle, f64 x, f64 y);
+
+void _vgfx_window_mouse_button_callback(VGFX_WindowHandle *handle, i32 button,
+                                        i32 action, i32 mods);

@@ -2,7 +2,7 @@
 
 Awesome game that I'm currently working on it's written from scratch using only C99 and OpenGL.
 
-> Version 0.2.5
+> Version 0.2.6
 
 ## Changelog
 
@@ -20,3 +20,4 @@ Awesome game that I'm currently working on it's written from scratch using only 
 - `v0.2.5`: Completely rewritten the input system to be event based.
 - `v0.2.5`: Refactored `VGFX_Camera3D` to utilize the new input system, yet again.
 - `v0.2.5`: Button input support for `VGFX_WindowEvent`.
+- `v0.2.6`: Added new event types to `VGFX_WindowEvent`.

@@ -1,12 +1,6 @@
 #include "vgfx/util/camera_3d.h"
 #include "vgfx/vgfx.h"
 
-/*
- * [X] TODO : Refactor `VGFX_Camera3D` to utilize new input system.
- * [_] TODO : Add more callback functions to `VGFX_Window`.
- * [X] TODO : Improve `VGFX_Input`.
- */
-
 const usize WINDOW_WIDTH = 800;
 const usize WINDOW_HEIGHT = 600;
 const char *WINDOW_TITLE = "cgame";
@@ -17,6 +11,26 @@ const char *TEST_TEXTURE_PATH = "res/dummy.png";
 
 static VGFX_Camera3D *s_camera = NULL;
 static bool s_editor_mode = false;
+
+void control_editor_mode(VGFX_Window *window) {
+  std_vector_foreach(VGFX_WindowEvent, window->_events, {
+    if (_iter->type != VGFX_WindowEventType_Key) {
+      continue;
+    }
+
+    if (_iter->key_id == VGFX_Key_ESCAPE &&
+        _iter->key_state == VGFX_KeyState_Press) {
+
+      s_editor_mode = !s_editor_mode;
+
+      if (!s_editor_mode) {
+        glfwSetInputMode(window->handle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+      } else {
+        glfwSetInputMode(window->handle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+      }
+    }
+  });
+}
 
 int main(i32 argc, char *argv[]) {
 
@@ -127,27 +141,8 @@ int main(i32 argc, char *argv[]) {
     dt = time - last_frame;
     last_frame = time;
 
-    // Get WindowEvents
-    STD_Vector(VGFX_WindowEvent) events = vgfx_window_get_events(window);
-
     // Set s_editor_mode
-    std_vector_foreach(VGFX_WindowEvent, events, {
-      if (_iter->type != VGFX_WindowEventType_Key) {
-        continue;
-      }
-
-      if (_iter->key_id == VGFX_Key_ESCAPE &&
-          _iter->key_state == VGFX_KeyState_Press) {
-
-        s_editor_mode = !s_editor_mode;
-
-        if (!s_editor_mode) {
-          glfwSetInputMode(window->handle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-        } else {
-          glfwSetInputMode(window->handle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-        }
-      }
-    });
+    control_editor_mode(window);
 
     // Camera movement
     vgfx_camera3d_handle_input(s_camera, window, dt, s_editor_mode);

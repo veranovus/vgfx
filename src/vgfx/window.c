@@ -91,6 +91,7 @@ VGFX_Window *vgfx_window_new(VGFX_WindowDescriptor desc) {
               window->handle, window);
 
   // Set GLFW callback functions
+  glfwSetWindowCloseCallback(window->handle, _vgfx_window_close_callback);
   glfwSetFramebufferSizeCallback(window->handle,
                                  _vgfx_window_framebuffer_size_callback);
   glfwSetKeyCallback(window->handle, _vgfx_window_key_callback);
@@ -209,9 +210,29 @@ STD_Vector(VGFX_WindowEvent) vgfx_window_get_events(const VGFX_Window *window) {
 // GLFW callback functions
 // -----------------------
 
+void _vgfx_window_close_callback(VGFX_WindowHandle *handle) {
+  VGFX_Window *window = _vgfx_window_handle_get_instance(handle);
+
+  std_vector_push(VGFX_WindowEvent, window->_events,
+                  ((VGFX_WindowEvent){
+                      .type = VGFX_WindowEventType_WindowClose,
+                  }));
+}
+
 void _vgfx_window_framebuffer_size_callback(VGFX_WindowHandle *handle, i32 w,
                                             i32 h) {
-  glViewport(0, 0, w, h);
+  VGFX_Window *window = _vgfx_window_handle_get_instance(handle);
+
+  window->width = w;
+  window->height = h;
+
+  glViewport(0, 0, (i32)window->width, (i32)window->height);
+
+  std_vector_push(VGFX_WindowEvent, window->_events,
+                  ((VGFX_WindowEvent){
+                      .type = VGFX_WindowEventType_WindowResize,
+                      .window_size = {(i32)window->width, (i32)window->height},
+                  }));
 }
 
 void _vgfx_window_key_callback(VGFX_WindowHandle *handle, i32 key, i32 scancode,

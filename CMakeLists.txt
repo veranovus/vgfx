@@ -1,6 +1,6 @@
 # Project configuration
 cmake_minimum_required(VERSION 3.26)
-project(cgame VERSION 0.2.5 LANGUAGES C)
+project(cgame VERSION 0.2.6 LANGUAGES C)
 
 if (CMAKE_HOST_WIN32)
     set(LIB_PATH dep/lib/win32-amd64)

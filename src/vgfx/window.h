@@ -10,7 +10,8 @@ typedef enum VGFX_WindowEventType {
   VGFX_WindowEventType_Key,
   VGFX_WindowEventType_Cursor,
   VGFX_WindowEventType_Mouse,
-  VGFX_WindowEventType_Window,
+  VGFX_WindowEventType_WindowClose,
+  VGFX_WindowEventType_WindowResize,
 } VGFX_WindowEventType;
 
 typedef struct VGFX_WindowEvent {
@@ -24,8 +25,8 @@ typedef struct VGFX_WindowEvent {
   // Mouse
   usize mouse_button;
   VGFX_ButtonState mouse_state;
-  // Window
-  bool window_close;
+  // WindowResize
+  ivec2 window_size;
 } VGFX_WindowEvent;
 
 // VGFX_WindowHandle
@@ -115,6 +116,8 @@ STD_Vector(VGFX_WindowEvent) vgfx_window_get_events(const VGFX_Window *window);
 
 // GLFW callback functions
 // -----------------------
+
+void _vgfx_window_close_callback(VGFX_WindowHandle *handle);
 
 void _vgfx_window_framebuffer_size_callback(VGFX_WindowHandle *handle, i32 w,
                                             i32 h);

@@ -242,9 +242,6 @@ void _vgfx_window_size_callback(VGFX_WindowHandle *handle, i32 w, i32 h) {
           .type = VGFX_WindowEventType_WindowResize,
           .window_size = {window->window_size[0], window->window_size[1]},
       }));
-
-  printf("WINDOW_SIZE : (%d, %d)\n", window->window_size[0],
-         window->window_size[1]);
 }
 
 void _vgfx_window_framebuffer_size_callback(VGFX_WindowHandle *handle, i32 w,
@@ -262,9 +259,6 @@ void _vgfx_window_framebuffer_size_callback(VGFX_WindowHandle *handle, i32 w,
                       .window_framebuffer_size = {window->framebuffer_size[0],
                                                   window->framebuffer_size[1]},
                   }));
-
-  printf("WINDOW_FRAMEBUFFER_SIZE : (%d, %d)\n", window->framebuffer_size[0],
-         window->framebuffer_size[1]);
 }
 
 void _vgfx_window_key_callback(VGFX_WindowHandle *handle, i32 key, i32 scancode,

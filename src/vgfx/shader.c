@@ -17,22 +17,22 @@ VGFX_Shader vgfx_shader_new(u32 type, const char **source) {
     String tmp;
     switch (type) {
     case GL_VERTEX_SHADER:
-      tmp = std_string_from(STD_STRING_STRINGIFY(GL_VERTEX_SHADER));
+      tmp = vstd_string_from(VSTD_STRING_STRINGIFY(GL_VERTEX_SHADER));
       break;
     case GL_TESS_CONTROL_SHADER:
-      tmp = std_string_from(STD_STRING_STRINGIFY(GL_TESS_CONTROL_SHADER));
+      tmp = vstd_string_from(VSTD_STRING_STRINGIFY(GL_TESS_CONTROL_SHADER));
       break;
     case GL_TESS_EVALUATION_SHADER:
-      tmp = std_string_from(STD_STRING_STRINGIFY(GL_TESS_EVALUATION_SHADER));
+      tmp = vstd_string_from(VSTD_STRING_STRINGIFY(GL_TESS_EVALUATION_SHADER));
       break;
     case GL_GEOMETRY_SHADER:
-      tmp = std_string_from(STD_STRING_STRINGIFY(GL_GEOMETRY_SHADER));
+      tmp = vstd_string_from(VSTD_STRING_STRINGIFY(GL_GEOMETRY_SHADER));
       break;
     case GL_FRAGMENT_SHADER:
-      tmp = std_string_from(STD_STRING_STRINGIFY(GL_FRAGMENT_SHADER));
+      tmp = vstd_string_from(VSTD_STRING_STRINGIFY(GL_FRAGMENT_SHADER));
       break;
     case GL_COMPUTE_SHADER:
-      tmp = std_string_from(STD_STRING_STRINGIFY(GL_COMPUTE_SHADER));
+      tmp = vstd_string_from(VSTD_STRING_STRINGIFY(GL_COMPUTE_SHADER));
       break;
     default:
       fprintf(stderr,
@@ -45,7 +45,7 @@ VGFX_Shader vgfx_shader_new(u32 type, const char **source) {
     glGetShaderInfoLog(shader, 512, NULL, info_log);
     fprintf(stderr, "ERROR: Failed to compile `%s`:\n%s", tmp.ptr, info_log);
 
-    std_string_free(&tmp);
+    vstd_string_free(&tmp);
     glDeleteShader(shader);
 
     return VGFX_INVALID_SHADER_ID;
@@ -96,8 +96,8 @@ void vgfx_shader_program_free(VGFX_ShaderProgram program) {
 // Private helper functions
 // ------------------------
 
-static VGFX_INLINE void
-_vgfx_shader_program_uniform_location_check(i32 location, const char *name) {
+VSTD_INLINE void _vgfx_shader_program_uniform_location_check(i32 location,
+                                                             const char *name) {
   if (location == -1) {
     fprintf(stderr, "WARNING: Uniform at location `%s` doesn't exists.\n",
             name);

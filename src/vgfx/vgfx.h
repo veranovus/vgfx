@@ -6,7 +6,7 @@
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <vstd/std.h>
+#include <vstd/vstd.h>
 
 #include "camera.h"
 #include "core.h"

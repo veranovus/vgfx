@@ -56,7 +56,7 @@ typedef struct VGFX_Window {
   bool vsync;
   // WindowEvents
   vec2 _cursor_last;
-  STD_Vector(VGFX_WindowEvent) _events;
+  VSTD_Vector(VGFX_WindowEvent) _events;
 } VGFX_Window;
 
 // VGFX_WindowHandle
@@ -120,7 +120,7 @@ VGFX_ButtonState vgfx_window_get_mouse_button(const VGFX_Window *window,
 
 void vgfx_window_get_cursor(const VGFX_Window *window, vec2 position);
 
-STD_Vector(VGFX_WindowEvent) vgfx_window_get_events(const VGFX_Window *window);
+VSTD_Vector(VGFX_WindowEvent) vgfx_window_get_events(const VGFX_Window *window);
 
 // GLFW callback functions
 // -----------------------

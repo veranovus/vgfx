@@ -11,7 +11,7 @@ const usize VGFX_WINDOW_EVENTS_INITIAL_CAP = 512;
 
 static VGFX_Window *s_vgfx_window_context_window = NULL;
 
-static STD_Map(VGFX_WindowHandle *, VGFX_Window *) s_vgfx_window_windows;
+static VSTD_Map(VGFX_WindowHandle *, VGFX_Window *) s_vgfx_window_windows;
 static bool s_vgfx_window_initialized = false;
 
 // VGFX_WindowHandle
@@ -20,8 +20,8 @@ static bool s_vgfx_window_initialized = false;
 // Returns a pointer to window that given handle is bound to.
 VGFX_Window *_vgfx_window_handle_get_instance(VGFX_WindowHandle *handle) {
   VGFX_Window **window = NULL;
-  std_map_get(VGFX_WindowHandle *, VGFX_Window *, s_vgfx_window_windows, handle,
-              window);
+  vstd_map_get(VGFX_WindowHandle *, VGFX_Window *, s_vgfx_window_windows,
+               handle, window);
 
   if (!window) {
     fprintf(stderr, "ERROR: Failed to get window instance from handle.\n");
@@ -37,8 +37,8 @@ VGFX_Window *_vgfx_window_handle_get_instance(VGFX_WindowHandle *handle) {
 VGFX_Window *vgfx_window_new(VGFX_WindowDescriptor desc) {
   // Initialize the windows map if it's not initialized already
   if (!s_vgfx_window_initialized) {
-    s_vgfx_window_windows =
-        std_map_new(VGFX_WindowHandle *, VGFX_Window *, std_map_condition_void);
+    s_vgfx_window_windows = vstd_map_new(VGFX_WindowHandle *, VGFX_Window *,
+                                         vstd_map_condition_void);
 
     s_vgfx_window_initialized = true;
   }
@@ -67,8 +67,8 @@ VGFX_Window *vgfx_window_new(VGFX_WindowDescriptor desc) {
       .window_size = {desc.size[0], desc.size[1]},
       .vsync = desc.vsync,
       // WindowEvents
-      ._events = std_vector_with_capacity(VGFX_WindowEvent,
-                                          VGFX_WINDOW_EVENTS_INITIAL_CAP),
+      ._events = vstd_vector_with_capacity(VGFX_WindowEvent,
+                                           VGFX_WINDOW_EVENTS_INITIAL_CAP),
       ._cursor_last = {0.0f, 0.0f},
   };
 
@@ -88,8 +88,8 @@ VGFX_Window *vgfx_window_new(VGFX_WindowDescriptor desc) {
   glfwSwapInterval(desc.vsync);
 
   // Add window to s_vgfx_window_windows map
-  std_map_set(VGFX_WindowHandle *, VGFX_Window *, s_vgfx_window_windows,
-              window->handle, window);
+  vstd_map_set(VGFX_WindowHandle *, VGFX_Window *, s_vgfx_window_windows,
+               window->handle, window);
 
   // Set GLFW callback functions
   glfwSetWindowCloseCallback(window->handle, _vgfx_window_close_callback);
@@ -110,11 +110,11 @@ void vgfx_window_free(VGFX_Window *window) {
   }
 
   // Remove self from windows map
-  std_map_remove(VGFX_WindowHandle *, VGFX_Window *, s_vgfx_window_windows,
-                 window->handle);
+  vstd_map_remove(VGFX_WindowHandle *, VGFX_Window *, s_vgfx_window_windows,
+                  window->handle);
 
   // Free WindowEvents
-  std_vector_free(VGFX_WindowEvent, window->_events);
+  vstd_vector_free(VGFX_WindowEvent, window->_events);
 
   glfwDestroyWindow(window->handle);
 
@@ -125,11 +125,11 @@ void _vgfx_window_terminate() {
   s_vgfx_window_initialized = false;
 
   // Free all the remaining windows
-  std_map_iter(VGFX_WindowHandle *, VGFX_Window *, s_vgfx_window_windows,
-               { vgfx_window_free(*_iter.val); });
+  vstd_map_iter(VGFX_WindowHandle *, VGFX_Window *, s_vgfx_window_windows,
+                { vgfx_window_free(*_$iter.val); });
 
   // Free the windows map
-  std_map_free(VGFX_WindowHandle *, VGFX_Window *, s_vgfx_window_windows);
+  vstd_map_free(VGFX_WindowHandle *, VGFX_Window *, s_vgfx_window_windows);
 }
 
 void vgfx_window_swap_buffers(VGFX_Window *window) {
@@ -138,7 +138,7 @@ void vgfx_window_swap_buffers(VGFX_Window *window) {
 
 void vgfx_window_poll_events(VGFX_Window *window) {
   // Clear window events
-  std_vector_clear(VGFX_WindowEvent, window->_events);
+  vstd_vector_clear(VGFX_WindowEvent, window->_events);
 
   glfwPollEvents();
 }
@@ -214,7 +214,8 @@ void vgfx_window_get_cursor(const VGFX_Window *window, vec2 position) {
   position[1] = (f32)y;
 }
 
-STD_Vector(VGFX_WindowEvent) vgfx_window_get_events(const VGFX_Window *window) {
+VSTD_Vector(VGFX_WindowEvent)
+    vgfx_window_get_events(const VGFX_Window *window) {
   return window->_events;
 }
 
@@ -224,10 +225,10 @@ STD_Vector(VGFX_WindowEvent) vgfx_window_get_events(const VGFX_Window *window) {
 void _vgfx_window_close_callback(VGFX_WindowHandle *handle) {
   VGFX_Window *window = _vgfx_window_handle_get_instance(handle);
 
-  std_vector_push(VGFX_WindowEvent, window->_events,
-                  ((VGFX_WindowEvent){
-                      .type = VGFX_WindowEventType_WindowClose,
-                  }));
+  vstd_vector_push(VGFX_WindowEvent, window->_events,
+                   ((VGFX_WindowEvent){
+                       .type = VGFX_WindowEventType_WindowClose,
+                   }));
 }
 
 void _vgfx_window_size_callback(VGFX_WindowHandle *handle, i32 w, i32 h) {
@@ -236,7 +237,7 @@ void _vgfx_window_size_callback(VGFX_WindowHandle *handle, i32 w, i32 h) {
   window->window_size[0] = w;
   window->window_size[1] = h;
 
-  std_vector_push(
+  vstd_vector_push(
       VGFX_WindowEvent, window->_events,
       ((VGFX_WindowEvent){
           .type = VGFX_WindowEventType_WindowResize,
@@ -253,24 +254,24 @@ void _vgfx_window_framebuffer_size_callback(VGFX_WindowHandle *handle, i32 w,
 
   glViewport(0, 0, window->framebuffer_size[0], window->framebuffer_size[1]);
 
-  std_vector_push(VGFX_WindowEvent, window->_events,
-                  ((VGFX_WindowEvent){
-                      .type = VGFX_WindowEventType_WindowFramebufferResize,
-                      .window_framebuffer_size = {window->framebuffer_size[0],
-                                                  window->framebuffer_size[1]},
-                  }));
+  vstd_vector_push(VGFX_WindowEvent, window->_events,
+                   ((VGFX_WindowEvent){
+                       .type = VGFX_WindowEventType_WindowFramebufferResize,
+                       .window_framebuffer_size = {window->framebuffer_size[0],
+                                                   window->framebuffer_size[1]},
+                   }));
 }
 
 void _vgfx_window_key_callback(VGFX_WindowHandle *handle, i32 key, i32 scancode,
                                i32 action, i32 mode) {
   VGFX_Window *window = _vgfx_window_handle_get_instance(handle);
 
-  std_vector_push(VGFX_WindowEvent, window->_events,
-                  ((VGFX_WindowEvent){
-                      .type = VGFX_WindowEventType_Key,
-                      .key_id = key,
-                      .key_state = action,
-                  }));
+  vstd_vector_push(VGFX_WindowEvent, window->_events,
+                   ((VGFX_WindowEvent){
+                       .type = VGFX_WindowEventType_Key,
+                       .key_id = key,
+                       .key_state = action,
+                   }));
 }
 
 void _vgfx_window_cursor_pos_callback(VGFX_WindowHandle *handle, f64 x, f64 y) {
@@ -282,22 +283,22 @@ void _vgfx_window_cursor_pos_callback(VGFX_WindowHandle *handle, f64 x, f64 y) {
   window->_cursor_last[0] = (f32)x;
   window->_cursor_last[1] = (f32)y;
 
-  std_vector_push(VGFX_WindowEvent, window->_events,
-                  ((VGFX_WindowEvent){
-                      .type = VGFX_WindowEventType_Cursor,
-                      .cursor_pos = {x, y},
-                      .cursor_offset = {x_offset, y_offset},
-                  }));
+  vstd_vector_push(VGFX_WindowEvent, window->_events,
+                   ((VGFX_WindowEvent){
+                       .type = VGFX_WindowEventType_Cursor,
+                       .cursor_pos = {x, y},
+                       .cursor_offset = {x_offset, y_offset},
+                   }));
 }
 
 void _vgfx_window_mouse_button_callback(VGFX_WindowHandle *handle, i32 button,
                                         i32 action, i32 mods) {
   VGFX_Window *window = _vgfx_window_handle_get_instance(handle);
 
-  std_vector_push(VGFX_WindowEvent, window->_events,
-                  ((VGFX_WindowEvent){
-                      .type = VGFX_WindowEventType_Mouse,
-                      .mouse_button = button,
-                      .mouse_state = action,
-                  }));
+  vstd_vector_push(VGFX_WindowEvent, window->_events,
+                   ((VGFX_WindowEvent){
+                       .type = VGFX_WindowEventType_Mouse,
+                       .mouse_button = button,
+                       .mouse_state = action,
+                   }));
 }

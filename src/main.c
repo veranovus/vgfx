@@ -13,13 +13,13 @@ static VGFX_Camera3D *s_camera = NULL;
 static bool s_editor_mode = false;
 
 void control_editor_mode(VGFX_Window *window) {
-  std_vector_foreach(VGFX_WindowEvent, window->_events, {
-    if (_iter->type != VGFX_WindowEventType_Key) {
+  vstd_vector_iter(VGFX_WindowEvent, window->_events, {
+    if (_$iter->type != VGFX_WindowEventType_Key) {
       continue;
     }
 
-    if (_iter->key_id == VGFX_Key_ESCAPE &&
-        _iter->key_state == VGFX_KeyState_Press) {
+    if (_$iter->key_id == VGFX_Key_ESCAPE &&
+        _$iter->key_state == VGFX_KeyState_Press) {
       s_editor_mode = !s_editor_mode;
 
       if (!s_editor_mode) {
@@ -35,7 +35,7 @@ int main(i32 argc, char *argv[]) {
   // VGFX setup
   vgfx_initialize();
 
-  String title = std_string_format("%s | %s", WINDOW_TITLE, PKG_VERSION);
+  String title = vstd_string_format("%s | %s", WINDOW_TITLE, PKG_VERSION);
 
   VGFX_Window *window = vgfx_window_new((VGFX_WindowDescriptor){
       .title = title.ptr,
@@ -45,7 +45,7 @@ int main(i32 argc, char *argv[]) {
       .decorated = true,
   });
 
-  std_string_free(&title);
+  vstd_string_free(&title);
 
   // Get maximum vertex attribute count
   i32 max_attribs;
@@ -54,20 +54,20 @@ int main(i32 argc, char *argv[]) {
   printf("DEBUG: Maximum available vertex attribute count: %d\n", max_attribs);
 
   // Vertex shader
-  String vertex_shader_source = std_fs_read_file(VERT_SHADER_PATH);
+  String vertex_shader_source = vstd_fs_read_file(VERT_SHADER_PATH);
 
   VGFX_Shader vertex_shader = vgfx_shader_new(
       GL_VERTEX_SHADER, (const char **)&vertex_shader_source.ptr);
 
-  std_string_free(&vertex_shader_source);
+  vstd_string_free(&vertex_shader_source);
 
   // Fragment shader
-  String fragment_shader_source = std_fs_read_file(FRAG_SHADER_PATH);
+  String fragment_shader_source = vstd_fs_read_file(FRAG_SHADER_PATH);
 
   VGFX_Shader fragment_shader = vgfx_shader_new(
       GL_FRAGMENT_SHADER, (const char **)&fragment_shader_source.ptr);
 
-  std_string_free(&fragment_shader_source);
+  vstd_string_free(&fragment_shader_source);
 
   // Shader program
   VGFX_Shader shaders[] = {vertex_shader, fragment_shader};

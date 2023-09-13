@@ -97,15 +97,15 @@ void _vgfx_camera3d_cursor_input(VGFX_Camera3D *camera,
 
   vec2 offset;
   bool moved;
-  std_vector_foreach(VGFX_WindowEvent, window->_events, {
-    if (_iter->type != VGFX_WindowEventType_Cursor) {
+  vstd_vector_iter(VGFX_WindowEvent, window->_events, {
+    if (_$iter->type != VGFX_WindowEventType_Cursor) {
       continue;
     }
 
     moved = true;
 
-    offset[0] = _iter->cursor_offset[0];
-    offset[1] = _iter->cursor_offset[1];
+    offset[0] = _$iter->cursor_offset[0];
+    offset[1] = _$iter->cursor_offset[1];
   });
 
   if (!moved) {

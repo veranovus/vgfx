@@ -45,6 +45,8 @@ set(SOURCE_FILES
         src/vgfx/shader.c
         src/vgfx/texture.h
         src/vgfx/texture.c
+        src/vgfx/font.h
+        src/vgfx/font.c
 
         # vgfx/util
         src/vgfx/util/camera_3d.h

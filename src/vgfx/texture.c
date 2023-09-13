@@ -6,7 +6,7 @@
 // ==============
 
 VGFX_Texture2D *vgfx_texture_new(const char *path, u32 wrap, u32 filter) {
-  u32 handle;
+  VGFX_TextureHandle handle;
   glGenTextures(1, &handle);
   glBindTexture(GL_TEXTURE_2D, handle);
 
@@ -33,6 +33,7 @@ VGFX_Texture2D *vgfx_texture_new(const char *path, u32 wrap, u32 filter) {
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
                GL_UNSIGNED_BYTE, data);
   glGenerateMipmap(GL_TEXTURE_2D);
+  glBindTexture(GL_TEXTURE_2D, 0);
 
   stbi_image_free(data);
 
@@ -42,6 +43,46 @@ VGFX_Texture2D *vgfx_texture_new(const char *path, u32 wrap, u32 filter) {
       .width = width,
       .height = height,
       .channel_count = channel,
+  };
+
+  return texture;
+}
+
+VGFX_Texture2D *vgfx_texture_new_empty(ivec2 size, u32 format, u32 wrap,
+                                       u32 filter) {
+  VGFX_TextureHandle handle;
+  glGenTextures(1, &handle);
+  glBindTexture(GL_TEXTURE_2D, handle);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, (i32)wrap);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, (i32)wrap);
+
+  u32 min_filter = (filter == GL_LINEAR) ? GL_LINEAR_MIPMAP_LINEAR
+                                         : GL_NEAREST_MIPMAP_NEAREST;
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (i32)min_filter);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (i32)filter);
+
+  /*
+   * FIXME: Potential Bug
+   * You might actually need to change buffer size -> (size[0] * size[1] *
+   * channel_count)
+   * */
+  u8 *buff = (u8 *)calloc(size[0] * size[1], sizeof(u8));
+
+  glTexImage2D(GL_TEXTURE_2D, 0, (i32)format, size[0], size[1], 0, (i32)format,
+               GL_UNSIGNED_BYTE, buff);
+  glGenerateMipmap(GL_TEXTURE_2D);
+  glBindTexture(GL_TEXTURE_2D, 0);
+
+  free(buff);
+
+  VGFX_Texture2D *texture = (VGFX_Texture2D *)malloc(sizeof(VGFX_Texture2D));
+  *texture = (VGFX_Texture2D){
+      .handle = handle,
+      .width = size[0],
+      .height = size[0],
+      .channel_count = 0,
   };
 
   return texture;

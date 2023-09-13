@@ -20,7 +20,6 @@ void control_editor_mode(VGFX_Window *window) {
 
     if (_iter->key_id == VGFX_Key_ESCAPE &&
         _iter->key_state == VGFX_KeyState_Press) {
-
       s_editor_mode = !s_editor_mode;
 
       if (!s_editor_mode) {
@@ -33,7 +32,6 @@ void control_editor_mode(VGFX_Window *window) {
 }
 
 int main(i32 argc, char *argv[]) {
-
   // VGFX setup
   vgfx_initialize();
 

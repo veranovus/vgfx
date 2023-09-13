@@ -87,10 +87,9 @@ void _vgfx_window_terminate();
 // OpenGL context
 // --------------
 
-// Makes the context of the window current for OpenGL and sets the OpenGL
-// viewport. This function also modifies the framebuffer size of the window.
-void vgfx_window_make_context_current(VGFX_Window *window, u32 fb_width,
-                                      u32 fb_height);
+// Sets window's context as the current OpenGL context and sets the OpenGL
+// viewport, this function applies the changes for window's framebuffer size.
+void vgfx_window_make_context_current(VGFX_Window *window);
 
 // Returns whether context of the window is current for OpenGL or not.
 bool vgfx_window_is_context_current(const VGFX_Window *window);
@@ -103,6 +102,10 @@ void vgfx_window_get_size(const VGFX_Window *window, ivec2 size);
 void vgfx_window_set_size(VGFX_Window *window, const ivec2 size);
 
 void vgfx_window_get_framebuffer_size(const VGFX_Window *window, ivec2 size);
+
+// Sets the framebuffer size for the window, changes are only applied after
+// window's context is set as current OpenGL context.
+void vgfx_window_set_framebuffer_size(VGFX_Window *window, const ivec2 size);
 
 bool vgfx_window_get_window_close(const VGFX_Window *window);
 

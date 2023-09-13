@@ -146,13 +146,9 @@ void vgfx_window_poll_events(VGFX_Window *window) {
 // OpenGL context
 // --------------
 
-void vgfx_window_make_context_current(VGFX_Window *window, u32 fb_width,
-                                      u32 fb_height) {
+void vgfx_window_make_context_current(VGFX_Window *window) {
   s_vgfx_window_context_window = window;
   glfwMakeContextCurrent(window->handle);
-
-  window->framebuffer_size[0] = (i32)fb_width;
-  window->framebuffer_size[1] = (i32)fb_height;
 
   glViewport(0, 0, (i32)window->framebuffer_size[0],
              (i32)window->framebuffer_size[1]);
@@ -183,6 +179,11 @@ void vgfx_window_set_size(VGFX_Window *window, const ivec2 size) {
 void vgfx_window_get_framebuffer_size(const VGFX_Window *window, ivec2 size) {
   size[0] = window->framebuffer_size[0];
   size[1] = window->framebuffer_size[1];
+}
+
+void vgfx_window_set_framebuffer_size(VGFX_Window *window, const ivec2 size) {
+  window->framebuffer_size[0] = size[0];
+  window->framebuffer_size[1] = size[1];
 }
 
 bool vgfx_window_get_window_close(const VGFX_Window *window) {

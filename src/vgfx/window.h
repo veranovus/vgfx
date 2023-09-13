@@ -12,6 +12,7 @@ typedef enum VGFX_WindowEventType {
   VGFX_WindowEventType_Mouse,
   VGFX_WindowEventType_WindowClose,
   VGFX_WindowEventType_WindowResize,
+  VGFX_WindowEventType_WindowFramebufferResize,
 } VGFX_WindowEventType;
 
 typedef struct VGFX_WindowEvent {
@@ -27,6 +28,8 @@ typedef struct VGFX_WindowEvent {
   VGFX_ButtonState mouse_state;
   // WindowResize
   ivec2 window_size;
+  // WindowFramebufferResize
+  ivec2 window_framebuffer_size;
 } VGFX_WindowEvent;
 
 // VGFX_WindowHandle
@@ -49,8 +52,8 @@ typedef struct VGFX_WindowDescriptor {
 typedef struct VGFX_Window {
   // Window
   VGFX_WindowHandle *handle;
-  u32 width;
-  u32 height;
+  ivec2 framebuffer_size;
+  ivec2 window_size;
   bool vsync;
   // WindowEvents
   vec2 _cursor_last;
@@ -85,8 +88,9 @@ void _vgfx_window_terminate();
 // --------------
 
 // Makes the context of the window current for OpenGL and sets the OpenGL
-// viewport.
-void vgfx_window_make_context_current(VGFX_Window *window, u32 w, u32 h);
+// viewport. This function also modifies the framebuffer size of the window.
+void vgfx_window_make_context_current(VGFX_Window *window, u32 fb_width,
+                                      u32 fb_height);
 
 // Returns whether context of the window is current for OpenGL or not.
 bool vgfx_window_is_context_current(const VGFX_Window *window);
@@ -97,6 +101,8 @@ bool vgfx_window_is_context_current(const VGFX_Window *window);
 void vgfx_window_get_size(const VGFX_Window *window, ivec2 size);
 
 void vgfx_window_set_size(VGFX_Window *window, const ivec2 size);
+
+void vgfx_window_get_framebuffer_size(const VGFX_Window *window, ivec2 size);
 
 bool vgfx_window_get_window_close(const VGFX_Window *window);
 
@@ -118,6 +124,8 @@ STD_Vector(VGFX_WindowEvent) vgfx_window_get_events(const VGFX_Window *window);
 // -----------------------
 
 void _vgfx_window_close_callback(VGFX_WindowHandle *handle);
+
+void _vgfx_window_size_callback(VGFX_WindowHandle *handle, i32 w, i32 h);
 
 void _vgfx_window_framebuffer_size_callback(VGFX_WindowHandle *handle, i32 w,
                                             i32 h);

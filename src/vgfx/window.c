@@ -64,8 +64,7 @@ VGFX_Window *vgfx_window_new(VGFX_WindowDescriptor desc) {
   *window = (VGFX_Window){
       // Window
       .handle = handle,
-      .width = desc.width,
-      .height = desc.height,
+      .window_size = {(i32)desc.width, (i32)desc.height},
       .vsync = desc.vsync,
       // WindowEvents
       ._events = std_vector_with_capacity(VGFX_WindowEvent,
@@ -80,8 +79,10 @@ VGFX_Window *vgfx_window_new(VGFX_WindowDescriptor desc) {
   // Try to initialize GLEW
   _vgfx_glew_initialize();
 
-  // Set GLViewport
-  glViewport(0, 0, (i32)desc.width, (i32)desc.height);
+  // Set window's framebuffer size and GLViewport
+  glfwGetFramebufferSize(window->handle, &window->framebuffer_size[0],
+                         &window->framebuffer_size[1]);
+  glViewport(0, 0, window->framebuffer_size[0], window->framebuffer_size[1]);
 
   // Set VSYNC
   glfwSwapInterval(desc.vsync);
@@ -92,6 +93,7 @@ VGFX_Window *vgfx_window_new(VGFX_WindowDescriptor desc) {
 
   // Set GLFW callback functions
   glfwSetWindowCloseCallback(window->handle, _vgfx_window_close_callback);
+  glfwSetWindowSizeCallback(window->handle, _vgfx_window_size_callback);
   glfwSetFramebufferSizeCallback(window->handle,
                                  _vgfx_window_framebuffer_size_callback);
   glfwSetKeyCallback(window->handle, _vgfx_window_key_callback);
@@ -144,14 +146,16 @@ void vgfx_window_poll_events(VGFX_Window *window) {
 // OpenGL context
 // --------------
 
-void vgfx_window_make_context_current(VGFX_Window *window, u32 w, u32 h) {
+void vgfx_window_make_context_current(VGFX_Window *window, u32 fb_width,
+                                      u32 fb_height) {
   s_vgfx_window_context_window = window;
   glfwMakeContextCurrent(window->handle);
 
-  window->width = w;
-  window->height = h;
+  window->framebuffer_size[0] = (i32)fb_width;
+  window->framebuffer_size[1] = (i32)fb_height;
 
-  glViewport(0, 0, (i32)window->width, (i32)window->height);
+  glViewport(0, 0, (i32)window->framebuffer_size[0],
+             (i32)window->framebuffer_size[1]);
 
   glfwSwapInterval(window->vsync);
 }
@@ -164,15 +168,21 @@ bool vgfx_window_is_context_current(const VGFX_Window *window) {
 // ----------------
 
 void vgfx_window_get_size(const VGFX_Window *window, ivec2 size) {
-  size[0] = (i32)window->width;
-  size[1] = (i32)window->height;
+  size[0] = window->window_size[0];
+  size[1] = window->window_size[1];
 }
 
 void vgfx_window_set_size(VGFX_Window *window, const ivec2 size) {
-  window->width = size[0];
-  window->height = size[1];
+  window->window_size[0] = size[0];
+  window->window_size[1] = size[1];
 
-  glfwSetWindowSize(window->handle, (i32)window->width, (i32)window->height);
+  glfwSetWindowSize(window->handle, window->window_size[0],
+                    window->window_size[1]);
+}
+
+void vgfx_window_get_framebuffer_size(const VGFX_Window *window, ivec2 size) {
+  size[0] = window->framebuffer_size[0];
+  size[1] = window->framebuffer_size[1];
 }
 
 bool vgfx_window_get_window_close(const VGFX_Window *window) {
@@ -219,20 +229,41 @@ void _vgfx_window_close_callback(VGFX_WindowHandle *handle) {
                   }));
 }
 
+void _vgfx_window_size_callback(VGFX_WindowHandle *handle, i32 w, i32 h) {
+  VGFX_Window *window = _vgfx_window_handle_get_instance(handle);
+
+  window->window_size[0] = w;
+  window->window_size[1] = h;
+
+  std_vector_push(
+      VGFX_WindowEvent, window->_events,
+      ((VGFX_WindowEvent){
+          .type = VGFX_WindowEventType_WindowResize,
+          .window_size = {window->window_size[0], window->window_size[1]},
+      }));
+
+  printf("WINDOW_SIZE : (%d, %d)\n", window->window_size[0],
+         window->window_size[1]);
+}
+
 void _vgfx_window_framebuffer_size_callback(VGFX_WindowHandle *handle, i32 w,
                                             i32 h) {
   VGFX_Window *window = _vgfx_window_handle_get_instance(handle);
 
-  window->width = w;
-  window->height = h;
+  window->framebuffer_size[0] = w;
+  window->framebuffer_size[1] = h;
 
-  glViewport(0, 0, (i32)window->width, (i32)window->height);
+  glViewport(0, 0, window->framebuffer_size[0], window->framebuffer_size[1]);
 
   std_vector_push(VGFX_WindowEvent, window->_events,
                   ((VGFX_WindowEvent){
-                      .type = VGFX_WindowEventType_WindowResize,
-                      .window_size = {(i32)window->width, (i32)window->height},
+                      .type = VGFX_WindowEventType_WindowFramebufferResize,
+                      .window_framebuffer_size = {window->framebuffer_size[0],
+                                                  window->framebuffer_size[1]},
                   }));
+
+  printf("WINDOW_FRAMEBUFFER_SIZE : (%d, %d)\n", window->framebuffer_size[0],
+         window->framebuffer_size[1]);
 }
 
 void _vgfx_window_key_callback(VGFX_WindowHandle *handle, i32 key, i32 scancode,

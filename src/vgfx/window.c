@@ -52,8 +52,8 @@ VGFX_Window *vgfx_window_new(VGFX_WindowDescriptor desc) {
   glfwWindowHint(GLFW_RESIZABLE, desc.resizable);
   glfwWindowHint(GLFW_DECORATED, desc.decorated);
 
-  VGFX_WindowHandle *handle = glfwCreateWindow(
-      (i32)desc.width, (i32)desc.height, desc.title, NULL, NULL);
+  VGFX_WindowHandle *handle =
+      glfwCreateWindow(desc.size[0], desc.size[1], desc.title, NULL, NULL);
 
   if (!handle) {
     fprintf(stderr, "ERROR: Failed to create new GLFW Window.\n");
@@ -64,7 +64,7 @@ VGFX_Window *vgfx_window_new(VGFX_WindowDescriptor desc) {
   *window = (VGFX_Window){
       // Window
       .handle = handle,
-      .window_size = {(i32)desc.width, (i32)desc.height},
+      .window_size = {desc.size[0], desc.size[1]},
       .vsync = desc.vsync,
       // WindowEvents
       ._events = std_vector_with_capacity(VGFX_WindowEvent,

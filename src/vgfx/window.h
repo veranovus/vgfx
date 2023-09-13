@@ -42,8 +42,7 @@ typedef GLFWwindow VGFX_WindowHandle;
 
 typedef struct VGFX_WindowDescriptor {
   const char *title;
-  u32 width;
-  u32 height;
+  ivec2 size;
   bool vsync;
   bool resizable;
   bool decorated;
@@ -80,8 +79,8 @@ void vgfx_window_swap_buffers(VGFX_Window *window);
 
 void vgfx_window_poll_events(VGFX_Window *window);
 
-// This function is called when VGFX_Core is terminated. Frees the whole windows
-// and window related systems.
+// This function is called when VGFX_Core is terminated. Calls free for every
+// window present and frees window related subsystems.
 void _vgfx_window_terminate();
 
 // OpenGL context

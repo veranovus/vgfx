@@ -2,7 +2,7 @@
 
 Awesome game that I'm currently working on it's written from scratch using only C99 and OpenGL.
 
-> Version 0.2.6
+> Version 0.2.7
 
 ## Changelog
 
@@ -23,3 +23,4 @@ Awesome game that I'm currently working on it's written from scratch using only 
 - `v0.2.6`: Added new event types to `VGFX_WindowEvent`.
 - `v0.2.6`: Changed how `VGFX_Window` window size and framebuffer size is handled.
 - `v0.2.6`: Changed how `VGFX_Window` context is set as current, and changed how framebuffer size is set.
+- `v0.2.7`: Small refactoring for `VGFX_WindowDescriptor`.

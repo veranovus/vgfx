@@ -25,9 +25,11 @@ void vgfx_initialize() {
 }
 
 void vgfx_terminate() {
-
   // Terminate VGFX_Window
   _vgfx_window_terminate();
+
+  // Set GLEW initialized flag to false
+  s_vgfx_core_glew_initialized = false;
 
   // Terminate GLFW
   glfwTerminate();

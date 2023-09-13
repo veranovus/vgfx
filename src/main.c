@@ -41,8 +41,7 @@ int main(i32 argc, char *argv[]) {
 
   VGFX_Window *window = vgfx_window_new((VGFX_WindowDescriptor){
       .title = title.ptr,
-      .width = WINDOW_WIDTH,
-      .height = WINDOW_HEIGHT,
+      .size = {(i32)WINDOW_WIDTH, (i32)WINDOW_HEIGHT},
       .vsync = false,
       .resizable = true,
       .decorated = true,

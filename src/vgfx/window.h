@@ -3,8 +3,11 @@
 #include "common.h"
 #include "input.h"
 
-// VGFX_WindowEvent
-// ================
+/*****************************************************************************
+ * - Types
+ * */
+
+// VGFX WindowEvent
 
 typedef enum VGFX_WindowEventType {
   VGFX_WindowEventType_Key,
@@ -32,13 +35,11 @@ typedef struct VGFX_WindowEvent {
   ivec2 window_framebuffer_size;
 } VGFX_WindowEvent;
 
-// VGFX_WindowHandle
-// =================
+// VGFX WindowHandle
 
 typedef GLFWwindow VGFX_WindowHandle;
 
-// VGFX_Window
-// ===========
+// VGFX Window
 
 typedef struct VGFX_WindowDescriptor {
   const char *title;
@@ -59,15 +60,17 @@ typedef struct VGFX_Window {
   VSTD_Vector(VGFX_WindowEvent) _events;
 } VGFX_Window;
 
-// VGFX_WindowHandle
-// =================
+/*****************************************************************************
+ * - VGFX WindowHandle
+ * */
 
 // Returns a pointer to window that given handle is bound to. This function will
 // panic if it fails to retrieve the window.
 VGFX_Window *_vgfx_window_handle_get_instance(VGFX_WindowHandle *handle);
 
-// VGFX_Window
-// ===========
+/*****************************************************************************
+ * - VGFX Window
+ * */
 
 // Creates a new GLFW window and makes the context of that window current for
 // OpenGL.
@@ -83,8 +86,9 @@ void vgfx_window_poll_events(VGFX_Window *window);
 // window present and frees window related subsystems.
 void _vgfx_window_terminate();
 
-// OpenGL context
-// --------------
+/*****************************************************************************
+ * - OpenGL Context
+ * */
 
 // Sets window's context as the current OpenGL context and sets the OpenGL
 // viewport, this function applies the changes for window's framebuffer size.
@@ -93,8 +97,9 @@ void vgfx_window_make_context_current(VGFX_Window *window);
 // Returns whether context of the window is current for OpenGL or not.
 bool vgfx_window_is_context_current(const VGFX_Window *window);
 
-// Helper functions
-// ----------------
+/*****************************************************************************
+ * - Helper Functions
+ * */
 
 void vgfx_window_get_size(const VGFX_Window *window, ivec2 size);
 
@@ -110,8 +115,9 @@ bool vgfx_window_get_window_close(const VGFX_Window *window);
 
 void vgfx_window_set_window_close(VGFX_Window *window, bool close);
 
-// WindowEvent & Input functions
-// -----------------------------
+/*****************************************************************************
+ * - WindowEvents & Helper Functions
+ * */
 
 VGFX_KeyState vgfx_window_get_key(const VGFX_Window *window, VGFX_Key key);
 
@@ -122,8 +128,9 @@ void vgfx_window_get_cursor(const VGFX_Window *window, vec2 position);
 
 VSTD_Vector(VGFX_WindowEvent) vgfx_window_get_events(const VGFX_Window *window);
 
-// GLFW callback functions
-// -----------------------
+/*****************************************************************************
+ * - GLFW Callback Functions
+ * */
 
 void _vgfx_window_close_callback(VGFX_WindowHandle *handle);
 

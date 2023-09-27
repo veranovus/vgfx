@@ -2,15 +2,17 @@
 
 #include "common.h"
 
-// VGFX_Font
-// =========
+/*****************************************************************************
+ * - Types
+ * */
 
 typedef struct VGFX_Font {
-  i32 test;
+
 } VGFX_Font;
 
-// VGFX_Font
-// =========
+/*****************************************************************************
+ * - VGFX Font
+ * */
 
 VGFX_Font *vgfx_font_new(const char *path);
 

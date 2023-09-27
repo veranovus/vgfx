@@ -2,14 +2,16 @@
 
 #include "common.h"
 
-// VGFX_Core
-// =========
+/*****************************************************************************
+ * - VGFX Core
+ * */
 
 void vgfx_initialize();
 
 void vgfx_terminate();
 
-// OpenGL helper functions
-// -----------------------
+/*****************************************************************************
+ * - OpenGL Helper Functions
+ * */
 
 void _vgfx_glew_initialize();

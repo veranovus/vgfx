@@ -2,8 +2,9 @@
 
 #include <stb/stb_image.h>
 
-// VGFX_Texture2D
-// ==============
+/*****************************************************************************
+ * - VGFX Texture2D
+ * */
 
 VGFX_Texture2D *vgfx_texture_new(const char *path, u32 wrap, u32 filter) {
   VGFX_TextureHandle handle;

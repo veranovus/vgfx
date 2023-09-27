@@ -2,20 +2,24 @@
 
 #include "core.h"
 
-// Constant variables
+/*****************************************************************************
+ * - Constant Variables
+ * */
 
 const usize VGFX_WINDOW_EVENTS_INITIAL_CAP = 512;
 
-// Static variables
-// ================
+/*****************************************************************************
+ * - Static Variables
+ * */
 
 static VGFX_Window *s_vgfx_window_context_window = NULL;
 
 static VSTD_Map(VGFX_WindowHandle *, VGFX_Window *) s_vgfx_window_windows;
 static bool s_vgfx_window_initialized = false;
 
-// VGFX_WindowHandle
-// -----------------
+/*****************************************************************************
+ * - VGFX Window Handle
+ * */
 
 // Returns a pointer to window that given handle is bound to.
 VGFX_Window *_vgfx_window_handle_get_instance(VGFX_WindowHandle *handle) {
@@ -31,8 +35,9 @@ VGFX_Window *_vgfx_window_handle_get_instance(VGFX_WindowHandle *handle) {
   return *window;
 }
 
-// VGFX_Window
-// ===========
+/*****************************************************************************
+ * - VGFX Window
+ * */
 
 VGFX_Window *vgfx_window_new(VGFX_WindowDescriptor desc) {
   // Initialize the windows map if it's not initialized already
@@ -126,7 +131,7 @@ void _vgfx_window_terminate() {
 
   // Free all the remaining windows
   vstd_map_iter(VGFX_WindowHandle *, VGFX_Window *, s_vgfx_window_windows,
-                { vgfx_window_free(*_$iter.val); });
+                vgfx_window_free(*_$iter.val));
 
   // Free the windows map
   vstd_map_free(VGFX_WindowHandle *, VGFX_Window *, s_vgfx_window_windows);
@@ -143,8 +148,9 @@ void vgfx_window_poll_events(VGFX_Window *window) {
   glfwPollEvents();
 }
 
-// OpenGL context
-// --------------
+/*****************************************************************************
+ * - OpenGL Context
+ * */
 
 void vgfx_window_make_context_current(VGFX_Window *window) {
   s_vgfx_window_context_window = window;
@@ -160,8 +166,9 @@ bool vgfx_window_is_context_current(const VGFX_Window *window) {
   return s_vgfx_window_context_window == window;
 }
 
-// Helper functions
-// ----------------
+/*****************************************************************************
+ * - Helper Functions
+ * */
 
 void vgfx_window_get_size(const VGFX_Window *window, ivec2 size) {
   size[0] = window->window_size[0];
@@ -194,8 +201,9 @@ void vgfx_window_set_window_close(VGFX_Window *window, bool close) {
   glfwSetWindowShouldClose(window->handle, close);
 }
 
-// WindowEvent & Input functions
-// -----------------------------
+/*****************************************************************************
+ * - WindowEvents & Helper Functions
+ * */
 
 VGFX_KeyState vgfx_window_get_key(const VGFX_Window *window, VGFX_Key key) {
   return glfwGetKey(window->handle, key);
@@ -219,8 +227,9 @@ VSTD_Vector(VGFX_WindowEvent)
   return window->_events;
 }
 
-// GLFW callback functions
-// -----------------------
+/*****************************************************************************
+ * - GLFW Callback Functions
+ * */
 
 void _vgfx_window_close_callback(VGFX_WindowHandle *handle) {
   VGFX_Window *window = _vgfx_window_handle_get_instance(handle);

@@ -4,13 +4,15 @@
 
 #include <stb/stb_image.h>
 
-// Static variables
-// ----------------
+/*****************************************************************************
+ * - Static Variables
+ * */
 
 static bool s_vgfx_core_glew_initialized = false;
 
-// VGFX_Core
-// =========
+/*****************************************************************************
+ * - VGFX Core
+ * */
 
 void vgfx_initialize() {
   // Initialize GLFW
@@ -35,8 +37,9 @@ void vgfx_terminate() {
   glfwTerminate();
 }
 
-// OpenGL helper functions
-// -----------------------
+/*****************************************************************************
+ * - OpenGL Helper Functions
+ * */
 
 void _vgfx_glew_initialize() {
   if (s_vgfx_core_glew_initialized) {

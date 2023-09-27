@@ -2,8 +2,9 @@
 
 #include "common.h"
 
-// VGFX_WindowEventType_Key
-// ========================
+/*****************************************************************************
+ * - VGFX WindowEventType Key
+ * */
 
 typedef enum VGFX_Key {
   VGFX_Key_UNKNOWN = -1,
@@ -142,8 +143,9 @@ typedef enum VGFX_KeyState {
   VGFX_KeyState_Repeat,
 } VGFX_KeyState;
 
-// VGFX_WindowEventType_Button
-// ===========================
+/*****************************************************************************
+ * - VGFX WindowEventType Button
+ * */
 
 typedef enum VGFX_ButtonState {
   VGFX_ButtonState_Invalid = -1,

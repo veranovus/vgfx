@@ -2,28 +2,16 @@
 cmake_minimum_required(VERSION 3.26)
 project(cgame VERSION 0.2.7 LANGUAGES C)
 
-if (CMAKE_HOST_WIN32)
-    set(LIB_PATH dep/lib/win32-amd64)
-elseif (CMAKE_HOST_LINUX)
-    set(LIB_PATH dep/lib/linux-amd64)
-elseif (CMAKE_HOST_APPLE)
-    set(LIB_PATH dep/lib/macos-arm64)
-else ()
-    message(FATAL_ERROR "Unsupported operating system or architecture.")
-endif ()
-
-set(INC_PATH dep/include)
-
 # Project settings
 set(CMAKE_C_STANDARD 99)
-link_directories(${LIB_PATH})
-include_directories(${INC_PATH})
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+include_directories(vendor/)
 
 # Dependency files
 set(DEPENDENCY_FILES
         # stb_image
-        dep/include/stb/stb_image.h
-        dep/include/stb/stb_image.c
+        vendor/stb/stb_image.h
+        vendor/stb/stb_image.c
 )
 
 # Source files
@@ -51,10 +39,6 @@ set(SOURCE_FILES
         # vgfx/util
         src/vgfx/util/camera_3d.h
         src/vgfx/util/camera_3d.c
-
-        # stb_image
-        dep/include/stb/stb_image.h
-        dep/include/stb/stb_image.c
 )
 
 # Export values
@@ -63,5 +47,9 @@ add_compile_definitions(PKG_VERSION=\"${CMAKE_PROJECT_VERSION}\")
 
 # Compilation directives
 add_executable(cgame ${SOURCE_FILES} ${DEPENDENCY_FILES})
+
 find_package(OpenGL REQUIRED)
-target_link_libraries(cgame OpenGL::GL glfw GLEW.2.2.0)
+find_package(GLEW REQUIRED)
+find_package(glfw3 REQUIRED)
+
+target_link_libraries(cgame OpenGL::GL glfw GLEW::glew)

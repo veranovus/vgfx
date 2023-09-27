@@ -2,22 +2,34 @@
 
 #include "common.h"
 
-typedef u32 VGFX_Shader;
+/*****************************************************************************
+ * - Types
+ * */
+
+// VGFX ShaderProgram
+
 typedef u32 VGFX_ShaderProgram;
 
-#define VGFX_INVALID_SHADER_ID 0
 #define VGFX_INVALID_SHADER_PROGRAM_ID 0
 
-// VGFX_Shader
-// ===========
+// VGFX Shader
+
+typedef u32 VGFX_Shader;
+
+#define VGFX_INVALID_SHADER_ID 0
+
+/*****************************************************************************
+ * - VGFX Shader
+ * */
 
 // Compiles a shader from given string.
 VGFX_Shader vgfx_shader_new(u32 type, const char **source);
 
 void vgfx_shader_free(VGFX_Shader shader);
 
-// VGFX_ShaderProgram
-// ==================
+/*****************************************************************************
+ * - VGFX ShaderProgram
+ * */
 
 // Creates a shader program from given shaders, this function consumes the
 // shaders making them unavailable for later use.
@@ -25,8 +37,9 @@ VGFX_ShaderProgram vgfx_shader_program_new(VGFX_Shader *vec, u32 len);
 
 void vgfx_shader_program_free(VGFX_ShaderProgram program);
 
-// Float uniform helper functions
-// ------------------------------
+/*****************************************************************************
+ * - Float Uniform Helper Functions
+ * */
 
 void vgfx_shader_program_uniform_f1(VGFX_ShaderProgram program,
                                     const char *name, f32 v0);
@@ -41,8 +54,9 @@ void vgfx_shader_program_uniform_f4(VGFX_ShaderProgram program,
                                     const char *name, f32 v0, f32 v1, f32 v2,
                                     f32 v3);
 
-// Integer uniform helper functions
-// --------------------------------
+/*****************************************************************************
+ * - Integer Uniform Helper Functions
+ * */
 
 void vgfx_shader_program_uniform_i1(VGFX_ShaderProgram program,
                                     const char *name, i32 v0);
@@ -57,8 +71,9 @@ void vgfx_shader_program_uniform_i4(VGFX_ShaderProgram program,
                                     const char *name, i32 v0, i32 v1, i32 v2,
                                     i32 v3);
 
-// Unsigned integer uniform helper functions
-// -----------------------------------------
+/*****************************************************************************
+ * - Unsigned Integer Uniform Helper Functions
+ * */
 
 void vgfx_shader_program_uniform_ui1(VGFX_ShaderProgram program,
                                      const char *name, u32 v0);
@@ -73,8 +88,9 @@ void vgfx_shader_program_uniform_ui4(VGFX_ShaderProgram program,
                                      const char *name, u32 v0, u32 v1, u32 v2,
                                      u32 v3);
 
-// Matrix uniform helper functions
-// -------------------------------
+/*****************************************************************************
+ * - Matrix Uniform Helper Functions
+ * */
 
 void vgfx_shader_program_uniform_mat2fv(VGFX_ShaderProgram program,
                                         const char *name, bool transpose,

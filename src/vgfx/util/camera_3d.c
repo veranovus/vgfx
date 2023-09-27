@@ -1,7 +1,8 @@
 #include "camera_3d.h"
 
-// VGFX_Camera3D
-// -------------
+/*****************************************************************************
+ * - VGFX Camera3D
+ * */
 
 VGFX_Camera3D *vgfx_camera3d_new(f32 fov, f32 width, f32 height, f32 near,
                                  f32 far) {
@@ -35,8 +36,9 @@ void vgfx_camera3d_handle_input(VGFX_Camera3D *camera,
   vgfx_camera3d_update_vectors(camera);
 }
 
-// Helper functions
-// ----------------
+/*****************************************************************************
+ * - Helper Functions
+ * */
 
 void vgfx_camera3d_update_vectors(VGFX_Camera3D *camera) {
   // Calculate front vector
@@ -57,8 +59,9 @@ void vgfx_camera3d_update_vectors(VGFX_Camera3D *camera) {
   glm_vec3_normalize(camera->camera->up);
 }
 
-// Camera input functions
-// ----------------------
+/*****************************************************************************
+ * - Camera Input Functions
+ * */
 
 void _vgfx_camera3d_key_input(VGFX_Camera3D *camera, const VGFX_Window *window,
                               f64 dt, bool editor_mode) {

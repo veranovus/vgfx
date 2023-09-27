@@ -1,7 +1,8 @@
 #include "shader.h"
 
-// VGFX_Shader
-// ===========
+/*****************************************************************************
+ * - VGFX Shader
+ * */
 
 VGFX_Shader vgfx_shader_new(u32 type, const char **source) {
   VGFX_Shader shader = glCreateShader(type);
@@ -14,25 +15,25 @@ VGFX_Shader vgfx_shader_new(u32 type, const char **source) {
   glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
 
   if (!success) {
-    String tmp;
+    VSTD_String tmp;
     switch (type) {
     case GL_VERTEX_SHADER:
-      tmp = vstd_string_from(VSTD_STRING_STRINGIFY(GL_VERTEX_SHADER));
+      tmp = vstd_string_from(VSTD_STRINGIFY(GL_VERTEX_SHADER));
       break;
     case GL_TESS_CONTROL_SHADER:
-      tmp = vstd_string_from(VSTD_STRING_STRINGIFY(GL_TESS_CONTROL_SHADER));
+      tmp = vstd_string_from(VSTD_STRINGIFY(GL_TESS_CONTROL_SHADER));
       break;
     case GL_TESS_EVALUATION_SHADER:
-      tmp = vstd_string_from(VSTD_STRING_STRINGIFY(GL_TESS_EVALUATION_SHADER));
+      tmp = vstd_string_from(VSTD_STRINGIFY(GL_TESS_EVALUATION_SHADER));
       break;
     case GL_GEOMETRY_SHADER:
-      tmp = vstd_string_from(VSTD_STRING_STRINGIFY(GL_GEOMETRY_SHADER));
+      tmp = vstd_string_from(VSTD_STRINGIFY(GL_GEOMETRY_SHADER));
       break;
     case GL_FRAGMENT_SHADER:
-      tmp = vstd_string_from(VSTD_STRING_STRINGIFY(GL_FRAGMENT_SHADER));
+      tmp = vstd_string_from(VSTD_STRINGIFY(GL_FRAGMENT_SHADER));
       break;
     case GL_COMPUTE_SHADER:
-      tmp = vstd_string_from(VSTD_STRING_STRINGIFY(GL_COMPUTE_SHADER));
+      tmp = vstd_string_from(VSTD_STRINGIFY(GL_COMPUTE_SHADER));
       break;
     default:
       fprintf(stderr,
@@ -56,8 +57,9 @@ VGFX_Shader vgfx_shader_new(u32 type, const char **source) {
 
 void vgfx_shader_free(VGFX_Shader shader) { glDeleteShader(shader); }
 
-// VGFX_ShaderProgram
-// ==================
+/*****************************************************************************
+ * - VGFX ShaderProgram
+ * */
 
 VGFX_ShaderProgram vgfx_shader_program_new(VGFX_Shader *vec, u32 len) {
   VGFX_ShaderProgram program = glCreateProgram();
@@ -93,8 +95,9 @@ void vgfx_shader_program_free(VGFX_ShaderProgram program) {
   glDeleteProgram(program);
 }
 
-// Private helper functions
-// ------------------------
+/*****************************************************************************
+ * - Private Helper Functions
+ * */
 
 VSTD_INLINE void _vgfx_shader_program_uniform_location_check(i32 location,
                                                              const char *name) {
@@ -104,8 +107,9 @@ VSTD_INLINE void _vgfx_shader_program_uniform_location_check(i32 location,
   }
 }
 
-// Float uniform helper functions
-// ------------------------------
+/*****************************************************************************
+ * - Float Uniform Helper Functions
+ * */
 
 void vgfx_shader_program_uniform_f1(VGFX_ShaderProgram program,
                                     const char *name, f32 v0) {
@@ -152,8 +156,9 @@ void vgfx_shader_program_uniform_f4(VGFX_ShaderProgram program,
   glUniform4f(location, v0, v1, v2, v3);
 }
 
-// Integer uniform helper functions
-// --------------------------------
+/*****************************************************************************
+ * - Integer Uniform Helper Functions
+ * */
 
 void vgfx_shader_program_uniform_i1(VGFX_ShaderProgram program,
                                     const char *name, i32 v0) {
@@ -200,8 +205,9 @@ void vgfx_shader_program_uniform_i4(VGFX_ShaderProgram program,
   glUniform4i(location, v0, v1, v2, v3);
 }
 
-// Unsigned integer uniform helper functions
-// -----------------------------------------
+/*****************************************************************************
+ * - Unsigned Uniform Helper Functions
+ * */
 
 void vgfx_shader_program_uniform_ui1(VGFX_ShaderProgram program,
                                      const char *name, u32 v0) {
@@ -248,8 +254,9 @@ void vgfx_shader_program_uniform_ui4(VGFX_ShaderProgram program,
   glUniform4ui(location, v0, v1, v2, v3);
 }
 
-// Matrix uniform helper functions
-// -------------------------------
+/*****************************************************************************
+ * - Matrix Uniform Helper Functions
+ * */
 
 void vgfx_shader_program_uniform_mat2fv(VGFX_ShaderProgram program,
                                         const char *name, bool transpose,

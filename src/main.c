@@ -35,7 +35,7 @@ int main(i32 argc, char *argv[]) {
   // VGFX setup
   vgfx_initialize();
 
-  String title = vstd_string_format("%s | %s", WINDOW_TITLE, PKG_VERSION);
+  VSTD_String title = vstd_string_format("%s | %s", WINDOW_TITLE, PKG_VERSION);
 
   VGFX_Window *window = vgfx_window_new((VGFX_WindowDescriptor){
       .title = title.ptr,
@@ -54,7 +54,7 @@ int main(i32 argc, char *argv[]) {
   printf("DEBUG: Maximum available vertex attribute count: %d\n", max_attribs);
 
   // Vertex shader
-  String vertex_shader_source = vstd_fs_read_file(VERT_SHADER_PATH);
+  VSTD_String vertex_shader_source = vstd_fs_read_file(VERT_SHADER_PATH);
 
   VGFX_Shader vertex_shader = vgfx_shader_new(
       GL_VERTEX_SHADER, (const char **)&vertex_shader_source.ptr);
@@ -62,7 +62,7 @@ int main(i32 argc, char *argv[]) {
   vstd_string_free(&vertex_shader_source);
 
   // Fragment shader
-  String fragment_shader_source = vstd_fs_read_file(FRAG_SHADER_PATH);
+  VSTD_String fragment_shader_source = vstd_fs_read_file(FRAG_SHADER_PATH);
 
   VGFX_Shader fragment_shader = vgfx_shader_new(
       GL_FRAGMENT_SHADER, (const char **)&fragment_shader_source.ptr);

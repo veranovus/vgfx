@@ -8,15 +8,15 @@
 
 // VGFX ShaderProgram
 
-typedef u32 VGFX_ShaderProgram;
-
 #define VGFX_INVALID_SHADER_PROGRAM_ID 0
+
+typedef u32 VGFX_ShaderProgram;
 
 // VGFX Shader
 
-typedef u32 VGFX_Shader;
-
 #define VGFX_INVALID_SHADER_ID 0
+
+typedef u32 VGFX_Shader;
 
 /*****************************************************************************
  * - VGFX Shader

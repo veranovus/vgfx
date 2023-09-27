@@ -10,6 +10,7 @@
 
 #include "camera.h"
 #include "core.h"
+#include "font.h"
 #include "input.h"
 #include "shader.h"
 #include "texture.h"

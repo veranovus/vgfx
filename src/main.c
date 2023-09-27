@@ -7,9 +7,11 @@ const char *WINDOW_TITLE = "cgame";
 
 const char *FRAG_SHADER_PATH = "res/shader/base.frag";
 const char *VERT_SHADER_PATH = "res/shader/base.vert";
+const char *TEST_FONT_PATH = "res/font/FiraCode-Medium.ttf";
 const char *TEST_TEXTURE_PATH = "res/dummy.png";
 
-static VGFX_Camera3D *s_camera = NULL;
+// static VGFX_Camera3D *s_camera = NULL;
+static VGFX_Camera *s_camera = NULL;
 static bool s_editor_mode = false;
 
 void control_editor_mode(VGFX_Window *window) {
@@ -53,44 +55,94 @@ int main(i32 argc, char *argv[]) {
 
   printf("DEBUG: Maximum available vertex attribute count: %d\n", max_attribs);
 
-  // Vertex shader
-  VSTD_String vertex_shader_source = vstd_fs_read_file(VERT_SHADER_PATH);
+  // Base Shader program
+  VGFX_Shader base_shaders[2];
 
-  VGFX_Shader vertex_shader = vgfx_shader_new(
-      GL_VERTEX_SHADER, (const char **)&vertex_shader_source.ptr);
+  {
+    // Vertex shader
+    VSTD_String vertex_shader_source = vstd_fs_read_file(VERT_SHADER_PATH);
 
-  vstd_string_free(&vertex_shader_source);
+    VGFX_Shader vertex_shader = vgfx_shader_new(
+        GL_VERTEX_SHADER, (const char **)&vertex_shader_source.ptr);
 
-  // Fragment shader
-  VSTD_String fragment_shader_source = vstd_fs_read_file(FRAG_SHADER_PATH);
+    vstd_string_free(&vertex_shader_source);
 
-  VGFX_Shader fragment_shader = vgfx_shader_new(
-      GL_FRAGMENT_SHADER, (const char **)&fragment_shader_source.ptr);
+    base_shaders[0] = vertex_shader;
 
-  vstd_string_free(&fragment_shader_source);
+    // Fragment shader
+    VSTD_String fragment_shader_source = vstd_fs_read_file(FRAG_SHADER_PATH);
 
-  // Shader program
-  VGFX_Shader shaders[] = {vertex_shader, fragment_shader};
-  VGFX_ShaderProgram program = vgfx_shader_program_new(shaders, 2);
+    VGFX_Shader fragment_shader = vgfx_shader_new(
+        GL_FRAGMENT_SHADER, (const char **)&fragment_shader_source.ptr);
+
+    vstd_string_free(&fragment_shader_source);
+
+    base_shaders[1] = fragment_shader;
+  }
+
+  VGFX_ShaderProgram base_program = vgfx_shader_program_new(base_shaders, 2);
+
+  // Base Shader program
+  VGFX_Shader text_shaders[2];
+
+  {
+    // Vertex shader
+    VSTD_String vertex_shader_source =
+        vstd_fs_read_file("res/shader/text.vert");
+
+    VGFX_Shader vertex_shader = vgfx_shader_new(
+        GL_VERTEX_SHADER, (const char **)&vertex_shader_source.ptr);
+
+    vstd_string_free(&vertex_shader_source);
+
+    text_shaders[0] = vertex_shader;
+
+    // Fragment shader
+    VSTD_String fragment_shader_source =
+        vstd_fs_read_file("res/shader/text.frag");
+
+    VGFX_Shader fragment_shader = vgfx_shader_new(
+        GL_FRAGMENT_SHADER, (const char **)&fragment_shader_source.ptr);
+
+    vstd_string_free(&fragment_shader_source);
+
+    text_shaders[1] = fragment_shader;
+  }
+
+  VGFX_ShaderProgram text_program = vgfx_shader_program_new(text_shaders, 2);
+
+  // Load font
+  VGFX_Font *font = vgfx_font_new(TEST_FONT_PATH);
 
   // Load texture
   VGFX_Texture2D *texture =
       vgfx_texture_new(TEST_TEXTURE_PATH, GL_REPEAT, GL_LINEAR);
 
   // Setup camera
-  s_camera = vgfx_camera3d_new(glm_rad(45.0f), (f32)WINDOW_WIDTH,
-                               (f32)WINDOW_HEIGHT, 0.01f, 100.0f);
+  // s_camera = vgfx_camera3d_new(glm_rad(45.0f), (f32)WINDOW_WIDTH,
+  //                              (f32)WINDOW_HEIGHT, 0.01f, 100.0f);
+
+  s_camera = vgfx_camera_new(glm_rad(0), WINDOW_WIDTH, WINDOW_HEIGHT, 0.0f,
+                             1000.0f, VGFX_CameraModeOrthographic);
 
   // Setup model matrix
+  VGFX_Glyph *glyph = &font->glyphs[63];
+
   mat4 model;
   glm_mat4_identity(model);
-  glm_rotate(model, glm_rad(-30.0f), (vec3){1.0f, 0.0f, 0.0f});
+  glm_scale(model, (vec3){glyph->size[0], glyph->size[1], 1.0f});
+  // glm_rotate(model, glm_rad(-30.0f), (vec3){1.0f, 0.0f, 0.0f});
+
+  f32 x = glyph->offset;
+  f32 w = glyph->size[0] / font->size[0];
 
   // Setup render pipeline
   f32 vertices[] = {
-      0.5f, 0.5f, 0.0f,  1.0f, 0.0f, 0.0f,  1.0f,  1.0f, 0.5f, -0.5f, 0.0f,
-      0.0f, 1.0f, 0.0f,  1.0f, 0.0f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,  1.0f,
-      0.0f, 0.0f, -0.5f, 0.5f, 0.0f, 1.0f,  1.0f,  1.0f, 0.0f, 1.0f,
+      0.5f,   0.5f,  0.0f,  1.0f, 0.0f, 0.0f, /**/ x + w, 0.0f,
+      0.5f,   -0.5f, 0.0f,  0.0f, 1.0f, 0.0f, /**/ x + w, 1.0f,
+      -0.5f,  -0.5f, 0.0f,  0.0f, 0.0f, 1.0f,
+      /**/ x, 1.0f,  -0.5f, 0.5f, 0.0f, 1.0f, 1.0f,       1.0f,
+      /**/ x, 0.0f,
   };
   u32 indices[] = {0, 1, 3, 1, 2, 3};
 
@@ -139,36 +191,43 @@ int main(i32 argc, char *argv[]) {
     last_frame = time;
 
     // Set s_editor_mode
-    control_editor_mode(window);
+    // control_editor_mode(window);
 
     // Camera movement
-    vgfx_camera3d_handle_input(s_camera, window, dt, s_editor_mode);
+    // vgfx_camera3d_handle_input(s_camera, window, dt, s_editor_mode);
 
     // Update camera view
-    vgfx_camera_update_view(s_camera->camera);
+    // vgfx_camera_update_view(s_camera->camera);
+    vgfx_camera_update_view(s_camera);
 
     // Calculate mvp matrix
     mat4 mvp;
-    vgfx_camera_get_matrix(s_camera->camera, mvp);
+    // vgfx_camera_get_matrix(s_camera->camera, mvp);
+    vgfx_camera_get_matrix(s_camera, mvp);
     glm_mat4_mul(mvp, model, mvp);
 
     // Render the scene
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glUseProgram(program);
+    glUseProgram(text_program);
 
-    vgfx_shader_program_uniform_f1(program, "u_time", (f32)time);
-    vgfx_shader_program_uniform_i1(program, "u_texture", 0);
-    vgfx_shader_program_uniform_mat4fv(program, "u_mvp", false, &mvp[0][0]);
+    vgfx_shader_program_uniform_f1(text_program, "u_time", (f32)time);
+    vgfx_shader_program_uniform_i1(text_program, "u_texture", 0);
+    vgfx_shader_program_uniform_mat4fv(text_program, "u_mvp", false,
+                                       &mvp[0][0]);
 
-    vgfx_texture_bind(texture, 0);
+    // vgfx_texture_bind(texture, 0);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, font->handle);
 
     glBindVertexArray(vao);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
     glBindVertexArray(0);
-    vgfx_texture_unbind(texture);
+    // vgfx_texture_unbind(texture);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, 0);
     glUseProgram(0);
 
     vgfx_window_swap_buffers(window);
@@ -182,8 +241,11 @@ int main(i32 argc, char *argv[]) {
 
   // Free resources
   vgfx_texture_free(texture);
-  vgfx_shader_program_free(program);
-  vgfx_camera3d_free(s_camera);
+  vgfx_font_free(font);
+  vgfx_shader_program_free(base_program);
+  vgfx_shader_program_free(text_program);
+  // vgfx_camera3d_free(s_camera);
+  vgfx_camera_free(s_camera);
 
   // Free the vgfx
   vgfx_window_free(window);

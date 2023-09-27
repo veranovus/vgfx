@@ -2,7 +2,7 @@
 
 Awesome game that I'm currently working on it's written from scratch using only C99 and OpenGL.
 
-> Version 0.2.7
+> Version 0.2.8
 
 ## Changelog
 
@@ -26,3 +26,5 @@ Awesome game that I'm currently working on it's written from scratch using only 
 - `v0.2.7`: Small refactoring for `VGFX_WindowDescriptor`.
 - `v0.2.7`: Refactored code to utilize new version of `vstd`.
 - `v0.2.7`: Small refactoring to comments and code structure.
+- `v0.2.8`: Created `VGFX_Font` and `VGFX_Glyph`.
+- `v0.2.8`: Implemented SDF font rendring.

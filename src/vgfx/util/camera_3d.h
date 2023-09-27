@@ -10,6 +10,10 @@
 
 // VGFX Camera3D
 
+static const f32 VGFX_CAMERA3D_DEFAULT_SPEED = 5.0f;
+
+static const f32 VGFX_CAMERA3D_DEFAULT_SENSIVITY = 0.1f;
+
 typedef struct VGFX_Camera3D {
   VGFX_Camera *camera;
   f32 yaw;
@@ -17,10 +21,6 @@ typedef struct VGFX_Camera3D {
   f32 speed;
   f32 sensivity;
 } VGFX_Camera3D;
-
-static const f32 VGFX_CAMERA3D_DEFAULT_SPEED = 5.0f;
-
-static const f32 VGFX_CAMERA3D_DEFAULT_SENSIVITY = 0.1f;
 
 /*****************************************************************************
  * - VGFX Camera 3D

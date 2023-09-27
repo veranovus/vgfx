@@ -1,6 +1,6 @@
 # Project configuration
 cmake_minimum_required(VERSION 3.26)
-project(cgame VERSION 0.2.7 LANGUAGES C)
+project(cgame VERSION 0.2.8 LANGUAGES C)
 
 # Project settings
 set(CMAKE_C_STANDARD 99)
@@ -51,5 +51,6 @@ add_executable(cgame ${SOURCE_FILES} ${DEPENDENCY_FILES})
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(glfw3 REQUIRED)
+find_package(Freetype REQUIRED)
 
-target_link_libraries(cgame OpenGL::GL glfw GLEW::glew)
+target_link_libraries(cgame OpenGL::GL glfw GLEW::glew Freetype::Freetype)

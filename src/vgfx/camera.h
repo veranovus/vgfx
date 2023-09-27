@@ -6,6 +6,8 @@
  * - Types
  * */
 
+// VGFX Camera
+
 typedef enum VGFX_CameraMode {
   VGFX_CameraModePerspective,
   VGFX_CameraModeOrthographic,

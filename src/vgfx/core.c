@@ -41,6 +41,33 @@ void vgfx_terminate() {
  * - OpenGL Helper Functions
  * */
 
+// TODO: Make this function set the upper bound for `vgfx_texture_handle_bind`.
+void _vgfx_dump_hardware_info() {
+  // Context info
+  const u8 *vend = glGetString(GL_VENDOR);
+  const u8 *rend = glGetString(GL_RENDERER);
+
+  printf("DEBUG: Context Info : %s :: %s\n", vend, rend);
+
+  // Maximum vertex attribute count
+  i32 max_attribs;
+  glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &max_attribs);
+
+  printf("DEBUG: Maximum available vertex attribute count: %d\n", max_attribs);
+
+  // Texture image units per stage
+  i32 image_units;
+  glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &image_units);
+
+  printf("DEBUG: Available image units per shader stage: %d\n", image_units);
+
+  // Total number of texture that can be bound
+  i32 max_image_units;
+  glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_image_units);
+
+  printf("DEBUG: Combined image units available: %d\n", max_image_units);
+}
+
 void _vgfx_glew_initialize() {
   if (s_vgfx_core_glew_initialized) {
     return;
@@ -60,6 +87,11 @@ void _vgfx_glew_initialize() {
   // Enable blending
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+  // Dump hardware info
+#ifdef DEBUG
+  _vgfx_dump_hardware_info();
+#endif
 
   // Set s_vgfx_core_glew_initialized to true
   s_vgfx_core_glew_initialized = true;

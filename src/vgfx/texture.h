@@ -31,6 +31,25 @@ VGFX_Texture2D *vgfx_texture_new(const char *path, u32 wrap, u32 filter);
 
 void vgfx_texture_free(VGFX_Texture2D *texture);
 
-void vgfx_texture_bind(VGFX_Texture2D *texture, u32 slot);
+/*****************************************************************************
+ * - VGFX TextureHandle
+ * */
 
-void vgfx_texture_unbind(const VGFX_Texture2D *texture);
+void vgfx_texture_handle_bind(VGFX_TextureHandle handle, u32 slot);
+
+void vgfx_texture_handle_unbind(u32 slot);
+
+/*****************************************************************************
+ * - Inline Functions
+ * */
+
+// VGFX Texture2D
+
+VSTD_INLINE void vgfx_texture_bind(VGFX_Texture2D *texture, u32 slot) {
+  texture->slot = slot;
+  vgfx_texture_handle_bind(texture->handle, texture->slot);
+}
+
+VSTD_INLINE void vgfx_texture_unbind(const VGFX_Texture2D *texture) {
+  vgfx_texture_handle_unbind(texture->slot);
+}

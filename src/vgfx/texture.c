@@ -56,15 +56,18 @@ void vgfx_texture_free(VGFX_Texture2D *texture) {
   free(texture);
 }
 
-void vgfx_texture_bind(VGFX_Texture2D *texture, u32 slot) {
-  glActiveTexture(GL_TEXTURE0 + slot);
-  texture->slot = slot;
+/*****************************************************************************
+ * - VGFX TextureHandle
+ * */
 
-  glBindTexture(GL_TEXTURE_2D, texture->handle);
+void vgfx_texture_handle_bind(VGFX_TextureHandle handle, u32 slot) {
+  glActiveTexture(GL_TEXTURE0 + slot);
+
+  glBindTexture(GL_TEXTURE_2D, handle);
 }
 
-void vgfx_texture_unbind(const VGFX_Texture2D *texture) {
-  glActiveTexture(GL_TEXTURE0 + texture->slot);
+void vgfx_texture_handle_unbind(u32 slot) {
+  glActiveTexture(GL_TEXTURE0 + slot);
 
   glBindTexture(GL_TEXTURE_2D, 0);
 }

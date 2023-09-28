@@ -49,12 +49,6 @@ int main(i32 argc, char *argv[]) {
 
   vstd_string_free(&title);
 
-  // Get maximum vertex attribute count
-  i32 max_attribs;
-  glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &max_attribs);
-
-  printf("DEBUG: Maximum available vertex attribute count: %d\n", max_attribs);
-
   // Base Shader program
   VGFX_Shader base_shaders[2];
 
@@ -218,16 +212,14 @@ int main(i32 argc, char *argv[]) {
                                        &mvp[0][0]);
 
     // vgfx_texture_bind(texture, 0);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, font->handle);
+    vgfx_texture_handle_bind(font->handle, 0);
 
     glBindVertexArray(vao);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
     glBindVertexArray(0);
     // vgfx_texture_unbind(texture);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    vgfx_texture_handle_unbind(0);
     glUseProgram(0);
 
     vgfx_window_swap_buffers(window);

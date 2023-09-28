@@ -11,6 +11,8 @@
 
 #define VGFX_FONT_GLYPH_COUNT 128
 
+#define VGFX_FONT_DEFAULT_SIZE 64
+
 typedef struct VGFX_Glyph {
   vec2 advance;
   vec2 size;
@@ -28,7 +30,7 @@ typedef struct VGFX_Font {
  * - VGFX Font
  * */
 
-VGFX_Font *vgfx_font_new(const char *path);
+VGFX_Font *vgfx_font_new(const char *path, usize size);
 
 void vgfx_font_free(VGFX_Font *font);
 

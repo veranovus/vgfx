@@ -3,16 +3,10 @@
 #include <freetype/freetype.h>
 
 /*****************************************************************************
- * - Constant Variables
- * */
-
-const usize VGFX_FONT_DEFAULT_SIZE = 64;
-
-/*****************************************************************************
  * - VGFX Font
  * */
 
-VGFX_Font *vgfx_font_new(const char *path) {
+VGFX_Font *vgfx_font_new(const char *path, usize size) {
 
   VSTD_String content = vstd_fs_read_file(path);
   if (!content.ptr) {
@@ -32,9 +26,8 @@ VGFX_Font *vgfx_font_new(const char *path) {
     return NULL;
   }
 
-  if (FT_Set_Pixel_Sizes(face, 0, VGFX_FONT_DEFAULT_SIZE)) {
-    fprintf(stderr, "Failed to set font size to `%d` pixels.\n",
-            (i32)VGFX_FONT_DEFAULT_SIZE);
+  if (FT_Set_Pixel_Sizes(face, 0, size)) {
+    fprintf(stderr, "Failed to set font size to `%lu` pixels.\n", size);
     return NULL;
   }
 

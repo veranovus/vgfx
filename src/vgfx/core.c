@@ -47,7 +47,7 @@ void _vgfx_dump_hardware_info() {
   const u8 *vend = glGetString(GL_VENDOR);
   const u8 *rend = glGetString(GL_RENDERER);
 
-  printf("DEBUG: Context Info : %s :: %s\n", vend, rend);
+  printf("DEBUG: Context Info: %s :: %s\n", vend, rend);
 
   // Maximum vertex attribute count
   i32 max_attribs;

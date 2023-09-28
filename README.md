@@ -29,3 +29,4 @@ Awesome game that I'm currently working on it's written from scratch using only 
 - `v0.2.8`: Created `VGFX_Font` and `VGFX_Glyph`.
 - `v0.2.8`: Implemented SDF font rendring.
 - `v0.2.9`: Changed to `VGFX_Texture2D` and how textures are bound.
+- `v0.2.9`: Small refactoring. 

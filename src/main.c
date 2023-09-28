@@ -10,28 +10,8 @@ const char *VERT_SHADER_PATH = "res/shader/base.vert";
 const char *TEST_FONT_PATH = "res/font/FiraCode-Medium.ttf";
 const char *TEST_TEXTURE_PATH = "res/dummy.png";
 
-// static VGFX_Camera3D *s_camera = NULL;
 static VGFX_Camera *s_camera = NULL;
 static bool s_editor_mode = false;
-
-void control_editor_mode(VGFX_Window *window) {
-  vstd_vector_iter(VGFX_WindowEvent, window->_events, {
-    if (_$iter->type != VGFX_WindowEventType_Key) {
-      continue;
-    }
-
-    if (_$iter->key_id == VGFX_Key_ESCAPE &&
-        _$iter->key_state == VGFX_KeyState_Press) {
-      s_editor_mode = !s_editor_mode;
-
-      if (!s_editor_mode) {
-        glfwSetInputMode(window->handle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-      } else {
-        glfwSetInputMode(window->handle, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-      }
-    }
-  });
-}
 
 int main(i32 argc, char *argv[]) {
   // VGFX setup
@@ -106,16 +86,13 @@ int main(i32 argc, char *argv[]) {
   VGFX_ShaderProgram text_program = vgfx_shader_program_new(text_shaders, 2);
 
   // Load font
-  VGFX_Font *font = vgfx_font_new(TEST_FONT_PATH);
+  VGFX_Font *font = vgfx_font_new(TEST_FONT_PATH, VGFX_FONT_DEFAULT_SIZE);
 
   // Load texture
   VGFX_Texture2D *texture =
       vgfx_texture_new(TEST_TEXTURE_PATH, GL_REPEAT, GL_LINEAR);
 
   // Setup camera
-  // s_camera = vgfx_camera3d_new(glm_rad(45.0f), (f32)WINDOW_WIDTH,
-  //                              (f32)WINDOW_HEIGHT, 0.01f, 100.0f);
-
   s_camera = vgfx_camera_new(glm_rad(0), WINDOW_WIDTH, WINDOW_HEIGHT, 0.0f,
                              1000.0f, VGFX_CameraModeOrthographic);
 
@@ -125,7 +102,6 @@ int main(i32 argc, char *argv[]) {
   mat4 model;
   glm_mat4_identity(model);
   glm_scale(model, (vec3){glyph->size[0], glyph->size[1], 1.0f});
-  // glm_rotate(model, glm_rad(-30.0f), (vec3){1.0f, 0.0f, 0.0f});
 
   f32 x = glyph->offset;
   f32 w = glyph->size[0] / font->size[0];
@@ -184,19 +160,11 @@ int main(i32 argc, char *argv[]) {
     dt = time - last_frame;
     last_frame = time;
 
-    // Set s_editor_mode
-    // control_editor_mode(window);
-
-    // Camera movement
-    // vgfx_camera3d_handle_input(s_camera, window, dt, s_editor_mode);
-
     // Update camera view
-    // vgfx_camera_update_view(s_camera->camera);
     vgfx_camera_update_view(s_camera);
 
     // Calculate mvp matrix
     mat4 mvp;
-    // vgfx_camera_get_matrix(s_camera->camera, mvp);
     vgfx_camera_get_matrix(s_camera, mvp);
     glm_mat4_mul(mvp, model, mvp);
 
@@ -236,7 +204,6 @@ int main(i32 argc, char *argv[]) {
   vgfx_font_free(font);
   vgfx_shader_program_free(base_program);
   vgfx_shader_program_free(text_program);
-  // vgfx_camera3d_free(s_camera);
   vgfx_camera_free(s_camera);
 
   // Free the vgfx

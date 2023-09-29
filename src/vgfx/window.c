@@ -39,7 +39,7 @@ VGFX_Window *_vgfx_window_handle_get_instance(VGFX_WindowHandle *handle) {
  * - VGFX Window
  * */
 
-VGFX_Window *vgfx_window_new(VGFX_WindowDescriptor desc) {
+VGFX_Window *vgfx_window_new(VGFX_WindowDescriptor *desc) {
   // Initialize the windows map if it's not initialized already
   if (!s_vgfx_window_initialized) {
     s_vgfx_window_windows = vstd_map_new(VGFX_WindowHandle *, VGFX_Window *,
@@ -54,11 +54,11 @@ VGFX_Window *vgfx_window_new(VGFX_WindowDescriptor desc) {
 #ifdef __APPLE__
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
-  glfwWindowHint(GLFW_RESIZABLE, desc.resizable);
-  glfwWindowHint(GLFW_DECORATED, desc.decorated);
+  glfwWindowHint(GLFW_RESIZABLE, desc->resizable);
+  glfwWindowHint(GLFW_DECORATED, desc->decorated);
 
   VGFX_WindowHandle *handle =
-      glfwCreateWindow(desc.size[0], desc.size[1], desc.title, NULL, NULL);
+      glfwCreateWindow(desc->size[0], desc->size[1], desc->title, NULL, NULL);
 
   if (!handle) {
     fprintf(stderr, "ERROR: Failed to create new GLFW Window.\n");
@@ -69,8 +69,8 @@ VGFX_Window *vgfx_window_new(VGFX_WindowDescriptor desc) {
   *window = (VGFX_Window){
       // Window
       .handle = handle,
-      .window_size = {desc.size[0], desc.size[1]},
-      .vsync = desc.vsync,
+      .window_size = {desc->size[0], desc->size[1]},
+      .vsync = desc->vsync,
       // WindowEvents
       ._events = vstd_vector_with_capacity(VGFX_WindowEvent,
                                            VGFX_WINDOW_EVENTS_INITIAL_CAP),
@@ -90,7 +90,7 @@ VGFX_Window *vgfx_window_new(VGFX_WindowDescriptor desc) {
   glViewport(0, 0, window->framebuffer_size[0], window->framebuffer_size[1]);
 
   // Set VSYNC
-  glfwSwapInterval(desc.vsync);
+  glfwSwapInterval(desc->vsync);
 
   // Add window to s_vgfx_window_windows map
   vstd_map_set(VGFX_WindowHandle *, VGFX_Window *, s_vgfx_window_windows,

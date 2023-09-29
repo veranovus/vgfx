@@ -1,3 +1,4 @@
+#include "vgfx/render.h"
 #include "vgfx/util/camera_3d.h"
 #include "vgfx/vgfx.h"
 
@@ -14,12 +15,13 @@ static VGFX_Camera *s_camera = NULL;
 static bool s_editor_mode = false;
 
 int main(i32 argc, char *argv[]) {
+
   // VGFX setup
   vgfx_initialize();
 
   VSTD_String title = vstd_string_format("%s | %s", WINDOW_TITLE, PKG_VERSION);
 
-  VGFX_Window *window = vgfx_window_new((VGFX_WindowDescriptor){
+  VGFX_Window *window = vgfx_window_new(&(VGFX_WindowDescriptor){
       .title = title.ptr,
       .size = {(i32)WINDOW_WIDTH, (i32)WINDOW_HEIGHT},
       .vsync = false,
@@ -108,48 +110,84 @@ int main(i32 argc, char *argv[]) {
 
   // Setup render pipeline
   f32 vertices[] = {
-      0.5f,   0.5f,  0.0f,  1.0f, 0.0f, 0.0f, /**/ x + w, 0.0f,
-      0.5f,   -0.5f, 0.0f,  0.0f, 1.0f, 0.0f, /**/ x + w, 1.0f,
-      -0.5f,  -0.5f, 0.0f,  0.0f, 0.0f, 1.0f,
-      /**/ x, 1.0f,  -0.5f, 0.5f, 0.0f, 1.0f, 1.0f,       1.0f,
-      /**/ x, 0.0f,
+      0.5f, 0.5f, 0.0f,  1.0f,  0.0f, 0.0f,  x + w, 0.0f, 0.5f, -0.5f, 0.0f,
+      0.0f, 1.0f, 0.0f,  x + w, 1.0f, -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,  1.0f,
+      x,    1.0f, -0.5f, 0.5f,  0.0f, 1.0f,  1.0f,  1.0f, x,    0.0f,
   };
+
   u32 indices[] = {0, 1, 3, 1, 2, 3};
 
-  u32 vao;
-  glGenVertexArrays(1, &vao);
+  // Changing
+  // VPos -> 0
+  // VCol -> 2
+  // VUv  -> 3
 
-  u32 vbo;
-  glGenBuffers(1, &vbo);
+  VGFX_Buffer vbuff = vgfx_buffer_new(&(VGFX_BufferDesc){
+      .type = GL_ARRAY_BUFFER,
+      .usage = GL_STATIC_DRAW,
+      .size = sizeof(vertices),
+      .data = vertices,
+  });
 
-  u32 ebo;
-  glGenBuffers(1, &ebo);
+  VGFX_Buffer ibuff = vgfx_buffer_new(&(VGFX_BufferDesc){
+      .type = GL_ELEMENT_ARRAY_BUFFER,
+      .usage = GL_STATIC_DRAW,
+      .size = sizeof(indices),
+      .data = indices,
+  });
 
-  glBindVertexArray(vao);
+  VGFX_VertexArray va = vgfx_vertex_array_new();
 
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+  vgfx_vertex_array_layout(va, &(VGFX_VertexLayout){
+                                   .buffer = vbuff,
+                                   .update = 0,
+                                   .attrib =
+                                       {
+                                           [0] = {3, GL_FLOAT, GL_FALSE},
+                                           [1] = {3, GL_FLOAT, GL_FALSE},
+                                           [2] = {2, GL_FLOAT, GL_FALSE},
+                                       },
+                               });
 
-  usize stride = sizeof(f32) * 8;
+  vgfx_vertex_array_index_buffer(va, ibuff);
 
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, (i32)stride, (void *)0);
-  glEnableVertexAttribArray(0);
+  // u32 vao;
+  // glGenVertexArrays(1, &vao);
 
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, (i32)stride,
-                        (void *)(sizeof(f32) * 3));
-  glEnableVertexAttribArray(1);
+  // u32 vbo;
+  // glGenBuffers(1, &vbo);
 
-  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, (i32)stride,
-                        (void *)(sizeof(f32) * 6));
-  glEnableVertexAttribArray(2);
+  // u32 ebo;
+  // glGenBuffers(1, &ebo);
 
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices,
-               GL_STATIC_DRAW);
+  // glBindVertexArray(vao);
 
-  glBindVertexArray(0);
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+  // glBindBuffer(GL_ARRAY_BUFFER, vbo);
+  // glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+  // usize stride = sizeof(f32) * 8;
+
+  // printf("STRIDE :: %lu\n", stride);
+
+  // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, (i32)stride, (void *)0);
+  // glEnableVertexAttribArray(0);
+
+  // glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, (i32)stride,
+  //                       (void *)(sizeof(f32) * 3));
+  // glEnableVertexAttribArray(1);
+
+  // glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, (i32)stride,
+  //                       (void *)(sizeof(f32) * 6));
+
+  // glEnableVertexAttribArray(2);
+
+  // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+  // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices,
+  //              GL_STATIC_DRAW);
+
+  // glBindVertexArray(0);
+  // glBindBuffer(GL_ARRAY_BUFFER, 0);
+  // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
   f64 dt, last_frame;
 
@@ -182,7 +220,8 @@ int main(i32 argc, char *argv[]) {
     // vgfx_texture_bind(texture, 0);
     vgfx_texture_handle_bind(font->handle, 0);
 
-    glBindVertexArray(vao);
+    // glBindVertexArray(vao);
+    glBindVertexArray(va);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
     glBindVertexArray(0);
@@ -195,9 +234,9 @@ int main(i32 argc, char *argv[]) {
   }
 
   // Delete render pipeline
-  glDeleteVertexArrays(1, &vao);
-  glDeleteBuffers(1, &vbo);
-  glDeleteBuffers(1, &ebo);
+  // glDeleteVertexArrays(1, &vao);
+  // glDeleteBuffers(1, &vbo);
+  // glDeleteBuffers(1, &ebo);
 
   // Free resources
   vgfx_texture_free(texture);

@@ -45,7 +45,7 @@ VGFX_Font *vgfx_font_new(const char *path, usize size) {
     }
 
     font->size[0] += face->glyph->bitmap.width;
-    if (font->size[1] < face->glyph->bitmap.rows) {
+    if (font->size[1] < (i32)face->glyph->bitmap.rows) {
       font->size[1] = face->glyph->bitmap.rows;
     }
   }

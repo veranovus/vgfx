@@ -74,7 +74,7 @@ VGFX_Window *_vgfx_window_handle_get_instance(VGFX_WindowHandle *handle);
 
 // Creates a new GLFW window and makes the context of that window current for
 // OpenGL.
-VGFX_Window *vgfx_window_new(VGFX_WindowDescriptor desc);
+VGFX_Window *vgfx_window_new(VGFX_WindowDescriptor *desc);
 
 void vgfx_window_free(VGFX_Window *window);
 

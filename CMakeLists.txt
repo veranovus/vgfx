@@ -1,8 +1,9 @@
 # Project configuration
 cmake_minimum_required(VERSION 3.26)
-project(cgame VERSION 0.2.9 LANGUAGES C)
+project(cgame VERSION 0.3.0 LANGUAGES C)
 
 # Project settings
+set(TARGET_NAME cgame)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include_directories(vendor/)
@@ -35,6 +36,8 @@ set(SOURCE_FILES
         src/vgfx/texture.c
         src/vgfx/font.h
         src/vgfx/font.c
+        src/vgfx/render.h
+        src/vgfx/render.c
 
         # vgfx/util
         src/vgfx/util/camera_3d.h
@@ -46,11 +49,13 @@ add_compile_definitions(DEBUG)
 add_compile_definitions(PKG_VERSION=\"${CMAKE_PROJECT_VERSION}\")
 
 # Compilation directives
-add_executable(cgame ${SOURCE_FILES} ${DEPENDENCY_FILES})
+add_executable(${TARGET_NAME} ${SOURCE_FILES} ${DEPENDENCY_FILES})
 
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(Freetype REQUIRED)
 
-target_link_libraries(cgame OpenGL::GL glfw GLEW::glew Freetype::Freetype)
+target_link_libraries(${TARGET_NAME} OpenGL::GL glfw GLEW::glew Freetype::Freetype)
+target_compile_options(${TARGET_NAME} PRIVATE -Wall -Wextra)
+

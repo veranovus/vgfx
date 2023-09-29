@@ -5,6 +5,7 @@ project(cgame VERSION 0.3.0 LANGUAGES C)
 # Project settings
 set(TARGET_NAME cgame)
 set(CMAKE_C_STANDARD 99)
+# set(CMAKE_BUILD_TYPE "Release")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include_directories(vendor/)
 

@@ -184,13 +184,24 @@ int main(i32 argc, char *argv[]) {
                                .dir = {dirx, diry}}));
   }
 
-  f64 dt, last_frame;
+  volatile u32 fps_counter, fps;
+  volatile f64 fps_timer = 0.0f;
+  volatile f64 dt, last_frame;
   while (!vgfx_window_get_window_close(window)) {
     // Time and delta time
     f64 time = glfwGetTime();
 
     dt = time - last_frame;
     last_frame = time;
+
+    fps_timer += dt;
+    fps_counter += 1;
+    if (fps_timer > 1.0f) {
+      fps_timer = 0;
+      fps = fps_counter;
+      fps_counter = 0;
+      printf("FPS :: %u\n", fps);
+    }
 
     // Update camera view
     vgfx_camera_update_view(s_camera);

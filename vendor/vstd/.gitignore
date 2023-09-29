@@ -1,8 +1,0 @@
-.cache/
-build/
-
-*.DS_Store
-
-CMakeLists.txt
-test-file.txt
-main.c

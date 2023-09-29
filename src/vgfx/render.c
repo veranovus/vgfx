@@ -13,10 +13,26 @@
  * - VGFX VertexArray
  * */
 
-VGFX_VertexArray vgfx_vertex_array_new() {
+VGFX_VertexArray vgfx_vertex_array_new(VGFX_VertexArrayDesc *desc) {
 
   VGFX_VertexArray handle;
   glGenVertexArrays(1, &handle);
+
+  if (!desc) {
+    return handle;
+  }
+
+  // Set vertex layouts
+  for (i32 i = 0; i < VGFX_MAX_BUFFER; ++i) {
+    VGFX_VertexLayout *layout = &desc->layouts[i];
+
+    vgfx_vertex_array_layout(handle, layout);
+  }
+
+  // Set index buffer
+  if (desc->index_buffer) {
+    vgfx_vertex_array_index_buffer(handle, desc->index_buffer);
+  }
 
   return handle;
 }
@@ -27,6 +43,11 @@ void vgfx_vertex_array_free(VGFX_VertexArray va) {
 }
 
 void vgfx_vertex_array_layout(VGFX_VertexArray va, VGFX_VertexLayout *layout) {
+
+  // Skip invalid layout
+  if (!layout->buffer) {
+    return;
+  }
 
   // Calculate stride and type_size
   u32 format = 0;
@@ -74,9 +95,6 @@ void vgfx_vertex_array_layout(VGFX_VertexArray va, VGFX_VertexLayout *layout) {
       continue;
     }
 
-    printf("Vertex Attrib :: %d :: {%u, %u, %u, %lu, %lu}\n", i, attrib->size,
-           attrib->format, attrib->normalize, stride, offset);
-
     // Set the attribute and enable it
     glVertexAttribPointer(i, attrib->size, attrib->format, attrib->normalize,
                           stride, (void *)offset);
@@ -108,14 +126,29 @@ VGFX_Buffer vgfx_buffer_new(VGFX_BufferDesc *desc) {
 
   VGFX_Buffer handle;
   glGenBuffers(1, &handle);
-  glBindBuffer(desc->type, handle);
-  glBufferData(desc->type, desc->size, desc->data, desc->usage);
-  glBindBuffer(desc->type, 0);
+
+  vgfx_buffer_data(handle, desc->type, desc->size, desc->data, desc->usage);
 
   return handle;
 }
 
 void vgfx_buffer_free(VGFX_Buffer buff) { glDeleteBuffers(1, &buff); }
+
+void vgfx_buffer_data(VGFX_Buffer buff, u32 type, usize size, const void *data,
+                      u32 usage) {
+
+  glBindBuffer(type, buff);
+  glBufferData(type, size, data, usage);
+  glBindBuffer(type, 0);
+}
+
+void vgfx_buffer_sub_data(VGFX_Buffer buff, u32 type, usize offset, usize size,
+                          const void *data) {
+
+  glBindBuffer(type, buff);
+  glBufferSubData(type, offset, size, data);
+  glBindBuffer(type, 0);
+}
 
 /*****************************************************************************
  * - Helper Functions

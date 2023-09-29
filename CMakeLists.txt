@@ -57,5 +57,5 @@ find_package(glfw3 REQUIRED)
 find_package(Freetype REQUIRED)
 
 target_link_libraries(${TARGET_NAME} OpenGL::GL glfw GLEW::glew Freetype::Freetype)
-target_compile_options(${TARGET_NAME} PRIVATE -Wall -Wextra)
+# target_compile_options(${TARGET_NAME} PRIVATE -Wall -Wextra)
 

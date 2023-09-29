@@ -136,22 +136,19 @@ int main(i32 argc, char *argv[]) {
       .data = indices,
   });
 
-  VGFX_VertexArray va = vgfx_vertex_array_new();
-
-  vgfx_vertex_array_layout(va, &(VGFX_VertexLayout){
-                                   .buffer = vbuff,
-                                   .update = 0,
-                                   .attrib =
-                                       {
-                                           [0] = {3, GL_FLOAT, GL_FALSE},
-                                           [1] = {3, GL_FLOAT, GL_FALSE},
-                                           [2] = {2, GL_FLOAT, GL_FALSE},
-                                       },
-                               });
-
-  vgfx_vertex_array_index_buffer(va, ibuff);
-
-  printf("Temporary.\n");
+  VGFX_VertexArray va = vgfx_vertex_array_new(&(VGFX_VertexArrayDesc){
+      .index_buffer = ibuff,
+      .layouts = {{
+          .buffer = vbuff,
+          .update = 0,
+          .attrib =
+              {
+                  [0] = {3, GL_FLOAT, GL_FALSE},
+                  [1] = {3, GL_FLOAT, GL_FALSE},
+                  [2] = {2, GL_FLOAT, GL_FALSE},
+              },
+      }},
+  });
 
   // u32 vao;
   // glGenVertexArrays(1, &vao);

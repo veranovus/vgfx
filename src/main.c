@@ -11,7 +11,7 @@ const char *WINDOW_TITLE = "cgame";
 const char *FRAG_SHADER_PATH = "res/shader/base.frag";
 const char *VERT_SHADER_PATH = "res/shader/base.vert";
 const char *TEST_FONT_PATH = "res/font/FiraCode-Medium.ttf";
-const char *TEST_TEXTURE_PATH = "res/dummy.png";
+const char *TEST_TEXTURE_PATH = "res/bunny.png";
 
 static VGFX_Camera *s_camera = NULL;
 static bool s_editor_mode = false;
@@ -94,14 +94,14 @@ int main(i32 argc, char *argv[]) {
 
   // Load texture
   VGFX_Texture2D *texture =
-      vgfx_texture_new(TEST_TEXTURE_PATH, GL_REPEAT, GL_LINEAR);
+      vgfx_texture_new(TEST_TEXTURE_PATH, GL_REPEAT, GL_NEAREST);
 
   // Setup camera
   s_camera = vgfx_camera_new(glm_rad(45.0f), WINDOW_WIDTH, WINDOW_HEIGHT, 0.0f,
                              1000.0f, VGFX_CameraModeOrthographic);
 
   // Setup render pipeline
-  const usize MAX_INSTANCE = 10000;
+  const usize MAX_INSTANCE = 100000;
 
   f32 vertices[] = {
       0.5f,  0.5f,  0.0f, 1.0f, 0.0f, 0.5f,  -0.5f, 0.0f, 1.0f, 1.0f,
@@ -155,16 +155,17 @@ int main(i32 argc, char *argv[]) {
                   }},
   });
 
+  mat4 *buff = (mat4 *)calloc(MAX_INSTANCE, sizeof(mat4));
+
   const usize INITIAL_OBJ_COUNT = 10000;
 
   typedef struct Object {
-    vec3 position;
-    vec3 size;
+    vec3 pos;
+    vec3 scl;
+    vec2 dir;
   } Object;
 
   VSTD_Vector(Object) objs = vstd_vector_with_capacity(Object, MAX_INSTANCE);
-
-  mat4 *buff = (mat4 *)calloc(MAX_INSTANCE, sizeof(mat4));
 
   srand(time(NULL));
 
@@ -172,25 +173,24 @@ int main(i32 argc, char *argv[]) {
     f32 x = (WINDOW_WIDTH / 2.0f) - rand() % WINDOW_WIDTH;
     f32 y = (WINDOW_HEIGHT / 2.0f) - rand() % WINDOW_HEIGHT;
 
+    f32 dirx = (rand() % 100 < 50) ? (rand() % 100) / -100.0f
+                                   : (rand() % 100) / 100.0f;
+    f32 diry = (rand() % 100 < 50) ? (rand() % 100) / -100.0f
+                                   : (rand() % 100) / 100.0f;
+
     vstd_vector_push(Object, objs,
-                     ((Object){
-                         .position = {x, y, 0.0f},
-                         .size = {30.0f, 30.0f, 1.0f},
-                     }));
+                     ((Object){.pos = {x, y, 0.0f},
+                               .scl = {25.0f, 25.0f, 1.0f},
+                               .dir = {dirx, diry}}));
   }
 
   f64 dt, last_frame;
-
   while (!vgfx_window_get_window_close(window)) {
     // Time and delta time
     f64 time = glfwGetTime();
 
     dt = time - last_frame;
     last_frame = time;
-
-    usize instance_count = 0;
-
-    // Set instance data
 
     // Update camera view
     vgfx_camera_update_view(s_camera);
@@ -199,12 +199,33 @@ int main(i32 argc, char *argv[]) {
     mat4 vpm;
     vgfx_camera_get_matrix(s_camera, vpm);
 
+    // Set instance data
+    f32 ww = WINDOW_WIDTH / 2.0f;
+    f32 wh = WINDOW_HEIGHT / 2.0f;
+    usize instance_count = 0;
+    vec2 tmp;
+    const f32 speed = 100.0f * dt;
+
     for (usize i = 0; i < objs.len; ++i) {
       Object *obj = &vstd_vector_get(Object, objs, i);
 
+      glm_vec2_scale(obj->dir, speed, tmp);
+
+      if (obj->pos[0] + tmp[0] < -ww || obj->pos[0] + tmp[0] > ww) {
+        obj->dir[0] = -obj->dir[0];
+      } else {
+        obj->pos[0] += tmp[0];
+      }
+
+      if (obj->pos[1] + tmp[1] < -wh || obj->pos[1] + tmp[1] > wh) {
+        obj->dir[1] = -obj->dir[1];
+      } else {
+        obj->pos[1] += tmp[1];
+      }
+
       glm_mat4_identity(buff[i]);
-      glm_translate(buff[i], obj->position);
-      glm_scale(buff[i], obj->size);
+      glm_translate(buff[i], obj->pos);
+      glm_scale(buff[i], obj->scl);
       glm_mat4_mul(vpm, buff[i], buff[i]);
 
       instance_count += 1;
@@ -221,17 +242,13 @@ int main(i32 argc, char *argv[]) {
 
     vgfx_shader_program_uniform_f1(base_program, "u_time", (f32)time);
     vgfx_shader_program_uniform_i1(base_program, "u_texture", 0);
-    // vgfx_shader_program_uniform_mat4fv(base_program, "u_vpm", false,
-    //                                    &vpm[0][0]);
 
     vgfx_texture_bind(texture, 0);
     // vgfx_texture_handle_bind(font->handle, 0);
 
-    // glBindVertexArray(vao);
     glBindVertexArray(va);
     glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0,
                             instance_count);
-    // glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
     glBindVertexArray(0);
     vgfx_texture_unbind(texture);

@@ -10,9 +10,10 @@ VGFX_Font *vgfx_font_new(const char *path, usize size) {
 
   VSTD_String content = vstd_fs_read_file(path);
   if (!content.ptr) {
-    fprintf(stderr, "Failed to read file to load Font, `%s`.\n", path);
+    fprintf(stderr, "Failed to read file to load font, `%s`.\n", path);
     return NULL;
   }
+  vstd_string_free(&content);
 
   FT_Library ft;
   if (FT_Init_FreeType(&ft)) {

@@ -22,8 +22,9 @@ void vgfx_initialize() {
     abort();
   }
 
+  // NOTE: Disabled due to UV changes.
   // Set flip_vertical_on_load for stb_image
-  stbi_set_flip_vertically_on_load(true);
+  // stbi_set_flip_vertically_on_load(true);
 }
 
 void vgfx_terminate() {

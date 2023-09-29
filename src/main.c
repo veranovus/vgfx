@@ -60,38 +60,6 @@ int main(i32 argc, char *argv[]) {
 
   VGFX_ShaderProgram base_program = vgfx_shader_program_new(base_shaders, 2);
 
-  // Base Shader program
-  VGFX_Shader text_shaders[2];
-
-  {
-    // Vertex shader
-    VSTD_String vertex_shader_source =
-        vstd_fs_read_file("res/shader/text.vert");
-
-    VGFX_Shader vertex_shader = vgfx_shader_new(
-        GL_VERTEX_SHADER, (const char **)&vertex_shader_source.ptr);
-
-    vstd_string_free(&vertex_shader_source);
-
-    text_shaders[0] = vertex_shader;
-
-    // Fragment shader
-    VSTD_String fragment_shader_source =
-        vstd_fs_read_file("res/shader/text.frag");
-
-    VGFX_Shader fragment_shader = vgfx_shader_new(
-        GL_FRAGMENT_SHADER, (const char **)&fragment_shader_source.ptr);
-
-    vstd_string_free(&fragment_shader_source);
-
-    text_shaders[1] = fragment_shader;
-  }
-
-  VGFX_ShaderProgram text_program = vgfx_shader_program_new(text_shaders, 2);
-
-  // Load font
-  VGFX_Font *font = vgfx_font_new(TEST_FONT_PATH, VGFX_FONT_DEFAULT_SIZE);
-
   // Load texture
   VGFX_Texture2D *texture =
       vgfx_texture_new(TEST_TEXTURE_PATH, GL_REPEAT, GL_NEAREST);
@@ -282,9 +250,7 @@ int main(i32 argc, char *argv[]) {
 
   // Free resources
   vgfx_texture_free(texture);
-  vgfx_font_free(font);
   vgfx_shader_program_free(base_program);
-  vgfx_shader_program_free(text_program);
   vgfx_camera_free(s_camera);
 
   // Free the vgfx

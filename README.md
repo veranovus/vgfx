@@ -30,3 +30,5 @@ Awesome game that I'm currently working on it's written from scratch using only 
 - `v0.2.8`: Implemented SDF font rendring.
 - `v0.2.9`: Changed to `VGFX_Texture2D` and how textures are bound.
 - `v0.2.9`: Small refactoring. 
+- `v0.3.0`: Implemented rendering pipeline prototype and instanced rendering.
+

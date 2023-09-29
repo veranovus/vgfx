@@ -1,3 +1,4 @@
+#include "cglm/sphere.h"
 #include "vgfx/render.h"
 #include "vgfx/util/camera_3d.h"
 #include "vgfx/vgfx.h"
@@ -99,16 +100,6 @@ int main(i32 argc, char *argv[]) {
   s_camera = vgfx_camera_new(glm_rad(45.0f), WINDOW_WIDTH, WINDOW_HEIGHT, 0.0f,
                              1000.0f, VGFX_CameraModeOrthographic);
 
-  // Setup model matrix
-  VGFX_Glyph *glyph = &font->glyphs[63];
-
-  mat4 model;
-  glm_mat4_identity(model);
-  glm_scale(model, (vec3){glyph->size[0], glyph->size[1], 1.0f});
-
-  f32 x = glyph->offset;
-  f32 w = glyph->size[0] / font->size[0];
-
   // Setup render pipeline
   const usize MAX_INSTANCE = 10000;
 
@@ -181,14 +172,6 @@ int main(i32 argc, char *argv[]) {
     f32 x = (WINDOW_WIDTH / 2.0f) - rand() % WINDOW_WIDTH;
     f32 y = (WINDOW_HEIGHT / 2.0f) - rand() % WINDOW_HEIGHT;
 
-    if (i == 0) {
-      x = 10.0f;
-      y = 10.0f;
-    } else {
-      x /= 100.0f;
-      y /= 100.0f;
-    }
-
     vstd_vector_push(Object, objs,
                      ((Object){
                          .position = {x, y, 0.0f},
@@ -213,17 +196,16 @@ int main(i32 argc, char *argv[]) {
     vgfx_camera_update_view(s_camera);
 
     // Calculate mvp matrix
-    mat4 tmp;
     mat4 vpm;
     vgfx_camera_get_matrix(s_camera, vpm);
 
     for (usize i = 0; i < objs.len; ++i) {
       Object *obj = &vstd_vector_get(Object, objs, i);
 
-      glm_mat4_identity(tmp);
-      glm_scale(tmp, obj->size);
-      glm_translate(tmp, obj->position);
-      glm_mat4_mul(vpm, tmp, buff[i]);
+      glm_mat4_identity(buff[i]);
+      glm_translate(buff[i], obj->position);
+      glm_scale(buff[i], obj->size);
+      glm_mat4_mul(vpm, buff[i], buff[i]);
 
       instance_count += 1;
     }
@@ -260,10 +242,15 @@ int main(i32 argc, char *argv[]) {
     vgfx_window_poll_events(window);
   }
 
+  // Delete vectors
+  vstd_vector_free(Object, objs);
+  free(buff);
+
   // Delete render pipeline
   vgfx_vertex_array_free(va);
   vgfx_buffer_free(vbuff);
   vgfx_buffer_free(ibuff);
+  vgfx_buffer_free(dbuff);
 
   // Free resources
   vgfx_texture_free(texture);

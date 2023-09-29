@@ -37,8 +37,8 @@ typedef struct VGFX_VertexLayout {
 } VGFX_VertexLayout;
 
 typedef struct VGFX_VertexArrayDesc {
-  VGFX_VertexLayout layouts[VGFX_MAX_BUFFER];
   VGFX_Buffer index_buffer;
+  VGFX_VertexLayout layouts[VGFX_MAX_BUFFER];
 } VGFX_VertexArrayDesc;
 
 typedef u32 VGFX_VertexArray;

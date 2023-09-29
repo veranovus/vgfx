@@ -117,11 +117,6 @@ int main(i32 argc, char *argv[]) {
 
   u32 indices[] = {0, 1, 3, 1, 2, 3};
 
-  // Changing
-  // VPos -> 0
-  // VCol -> 2
-  // VUv  -> 3
-
   VGFX_Buffer vbuff = vgfx_buffer_new(&(VGFX_BufferDesc){
       .type = GL_ARRAY_BUFFER,
       .usage = GL_STATIC_DRAW,
@@ -166,8 +161,6 @@ int main(i32 argc, char *argv[]) {
 
   // usize stride = sizeof(f32) * 8;
 
-  // printf("STRIDE :: %lu\n", stride);
-
   // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, (i32)stride, (void *)0);
   // glEnableVertexAttribArray(0);
 
@@ -209,23 +202,23 @@ int main(i32 argc, char *argv[]) {
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glUseProgram(text_program);
+    glUseProgram(base_program);
 
-    vgfx_shader_program_uniform_f1(text_program, "u_time", (f32)time);
-    vgfx_shader_program_uniform_i1(text_program, "u_texture", 0);
-    vgfx_shader_program_uniform_mat4fv(text_program, "u_mvp", false,
+    vgfx_shader_program_uniform_f1(base_program, "u_time", (f32)time);
+    vgfx_shader_program_uniform_i1(base_program, "u_texture", 0);
+    vgfx_shader_program_uniform_mat4fv(base_program, "u_mvp", false,
                                        &mvp[0][0]);
 
-    // vgfx_texture_bind(texture, 0);
-    vgfx_texture_handle_bind(font->handle, 0);
+    vgfx_texture_bind(texture, 0);
+    // vgfx_texture_handle_bind(font->handle, 0);
 
     // glBindVertexArray(vao);
     glBindVertexArray(va);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
     glBindVertexArray(0);
-    // vgfx_texture_unbind(texture);
-    vgfx_texture_handle_unbind(0);
+    vgfx_texture_unbind(texture);
+    // vgfx_texture_handle_unbind(0);
     glUseProgram(0);
 
     vgfx_window_swap_buffers(window);
@@ -236,6 +229,9 @@ int main(i32 argc, char *argv[]) {
   // glDeleteVertexArrays(1, &vao);
   // glDeleteBuffers(1, &vbo);
   // glDeleteBuffers(1, &ebo);
+  vgfx_vertex_array_free(va);
+  vgfx_buffer_free(vbuff);
+  vgfx_buffer_free(ibuff);
 
   // Free resources
   vgfx_texture_free(texture);

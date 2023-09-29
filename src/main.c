@@ -151,6 +151,8 @@ int main(i32 argc, char *argv[]) {
 
   vgfx_vertex_array_index_buffer(va, ibuff);
 
+  printf("Temporary.\n");
+
   // u32 vao;
   // glGenVertexArrays(1, &vao);
 

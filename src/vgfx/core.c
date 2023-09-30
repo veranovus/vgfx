@@ -1,8 +1,62 @@
 #include "core.h"
-
 #include "window.h"
 
-#include <stb/stb_image.h>
+#define B_STACKTRACE_IMPL
+#include <b_stacktrace.h>
+
+// =============================================
+//
+//
+// Abort & Assertions
+//
+//
+// =============================================
+
+_Noreturn void _vgfx_abort(const char *file, i32 line, const char *msg, ...) {
+  fprintf(stderr, "abort: ");
+
+  va_list va_args;
+  va_start(va_args, msg);
+  vfprintf(stderr, msg, va_args);
+  va_end(va_args);
+
+  fprintf(stderr, "\nfile: %s:%u\n", file, line);
+  char *stacktrace = b_stacktrace_get_string();
+  fprintf(stderr, "stacktrace:\n%s\n\n", stacktrace);
+  abort();
+}
+
+void _vgfx_assert_failed(const char *cond, const char *file, i32 line,
+                         const char *msg, ...) {
+  fprintf(stderr, "assertion failed: %s\nmessage: ", cond);
+
+  va_list va_args;
+  va_start(va_args, msg);
+  vfprintf(stderr, msg, va_args);
+  va_end(va_args);
+
+  fprintf(stderr, "\nfile: %s:%u\n", file, line);
+  char *stacktrace = b_stacktrace_get_string();
+  fprintf(stderr, "stacktrace:\n%s\n\n", stacktrace);
+  abort();
+}
+
+// =============================================
+//
+//
+// Debug Print
+//
+//
+// =============================================
+
+void _vgfx_debug_print(const char *msg, ...) {
+  printf("debug: ");
+
+  va_list va_args;
+  va_start(va_args, msg);
+  vprintf(msg, va_args);
+  va_end(va_args);
+}
 
 /*****************************************************************************
  * - Static Variables
@@ -74,13 +128,7 @@ void _vgfx_glew_initialize() {
     return;
   }
 
-  if (glewInit() != GLEW_OK) {
-    fprintf(stderr, "ERROR: Failed to initialize GLEW.\n");
-
-    glfwTerminate();
-
-    abort();
-  }
+  gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 
   // Enable depth test
   glEnable(GL_DEPTH_TEST);

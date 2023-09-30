@@ -1,10 +1,11 @@
 # Project configuration
 cmake_minimum_required(VERSION 3.26)
-project(cgame VERSION 0.3.0 LANGUAGES C)
+project(cgame VERSION 0.3.1 LANGUAGES C)
 
 # Project settings
 set(TARGET_NAME cgame)
 set(CMAKE_C_STANDARD 99)
+set(CMAKE_BUILD_TYPE "Debug")
 # set(CMAKE_BUILD_TYPE "Release")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include_directories(vendor/)
@@ -14,6 +15,12 @@ set(DEPENDENCY_FILES
         # stb_image
         vendor/stb/stb_image.h
         vendor/stb/stb_image.c
+
+        # glfw
+        vendor/glfw/glfw_impl.m
+
+        # glad
+        vendor/glad/glad.c
 )
 
 # Source files
@@ -22,10 +29,10 @@ set(SOURCE_FILES
         src/main.c
 
         # vgfx
-        src/vgfx/vgfx.h
-        src/vgfx/common.h
         src/vgfx/core.h
         src/vgfx/core.c
+        src/vgfx/os.h
+        src/vgfx/os.c
         src/vgfx/input.h
         src/vgfx/window.h
         src/vgfx/window.c
@@ -46,17 +53,16 @@ set(SOURCE_FILES
 )
 
 # Export values
-add_compile_definitions(DEBUG)
 add_compile_definitions(PKG_VERSION=\"${CMAKE_PROJECT_VERSION}\")
 
 # Compilation directives
 add_executable(${TARGET_NAME} ${SOURCE_FILES} ${DEPENDENCY_FILES})
 
 find_package(OpenGL REQUIRED)
-find_package(GLEW REQUIRED)
-find_package(glfw3 REQUIRED)
 find_package(Freetype REQUIRED)
+find_library(COCOA Cocoa)
+find_library(IOKIT IOKit)
 
-target_link_libraries(${TARGET_NAME} OpenGL::GL glfw GLEW::glew Freetype::Freetype)
-# target_compile_options(${TARGET_NAME} PRIVATE -Wall -Wextra)
+target_link_libraries(${TARGET_NAME} PRIVATE ${COCOA} ${IOKIT} OpenGL::GL Freetype::Freetype)
+target_compile_options(${TARGET_NAME} PRIVATE -Wall -Wextra)
 

@@ -20,21 +20,21 @@ VGFX_Shader vgfx_shader_new(u32 type, const char **source) {
     case GL_VERTEX_SHADER:
       tmp = vstd_string_from(VSTD_STRINGIFY(GL_VERTEX_SHADER));
       break;
-    case GL_TESS_CONTROL_SHADER:
-      tmp = vstd_string_from(VSTD_STRINGIFY(GL_TESS_CONTROL_SHADER));
-      break;
-    case GL_TESS_EVALUATION_SHADER:
-      tmp = vstd_string_from(VSTD_STRINGIFY(GL_TESS_EVALUATION_SHADER));
-      break;
+    // case GL_TESS_CONTROL_SHADER:
+    //   tmp = vstd_string_from(VSTD_STRINGIFY(GL_TESS_CONTROL_SHADER));
+    //   break;
+    // case GL_TESS_EVALUATION_SHADER:
+    //   tmp = vstd_string_from(VSTD_STRINGIFY(GL_TESS_EVALUATION_SHADER));
+    //   break;
     case GL_GEOMETRY_SHADER:
       tmp = vstd_string_from(VSTD_STRINGIFY(GL_GEOMETRY_SHADER));
       break;
     case GL_FRAGMENT_SHADER:
       tmp = vstd_string_from(VSTD_STRINGIFY(GL_FRAGMENT_SHADER));
       break;
-    case GL_COMPUTE_SHADER:
-      tmp = vstd_string_from(VSTD_STRINGIFY(GL_COMPUTE_SHADER));
-      break;
+    // case GL_COMPUTE_SHADER:
+    //   tmp = vstd_string_from(VSTD_STRINGIFY(GL_COMPUTE_SHADER));
+    //   break;
     default:
       fprintf(stderr,
               "ERROR: Failed to compile shader unknown shader type `%d`.\n",

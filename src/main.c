@@ -1,7 +1,10 @@
-#include "cglm/sphere.h"
+#include "vgfx/camera.h"
+#include "vgfx/core.h"
+#include "vgfx/font.h"
 #include "vgfx/render.h"
-#include "vgfx/util/camera_3d.h"
-#include "vgfx/vgfx.h"
+#include "vgfx/shader.h"
+#include "vgfx/texture.h"
+#include "vgfx/window.h"
 #include <time.h>
 
 const usize WINDOW_WIDTH = 800;

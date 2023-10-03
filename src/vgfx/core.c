@@ -13,44 +13,47 @@
 // =============================================
 
 _Noreturn void _vgfx_abort(const char *file, i32 line, const char *msg, ...) {
-  fprintf(stderr, "abort: ");
+
+  fprintf(stderr, "Abort: ");
 
   va_list va_args;
   va_start(va_args, msg);
   vfprintf(stderr, msg, va_args);
   va_end(va_args);
 
-  fprintf(stderr, "\nfile: %s:%u\n", file, line);
+  fprintf(stderr, "\nFile: %s:%u\n", file, line);
   char *stacktrace = b_stacktrace_get_string();
-  fprintf(stderr, "stacktrace:\n%s\n\n", stacktrace);
+  fprintf(stderr, "Stacktrace:\n%s\n\n", stacktrace);
   abort();
 }
 
 void _vgfx_assert_failed(const char *cond, const char *file, i32 line,
                          const char *msg, ...) {
-  fprintf(stderr, "assertion failed: %s\nmessage: ", cond);
+
+  fprintf(stderr, "Assertion failed: %s\nMessage: ", cond);
 
   va_list va_args;
   va_start(va_args, msg);
   vfprintf(stderr, msg, va_args);
   va_end(va_args);
 
-  fprintf(stderr, "\nfile: %s:%u\n", file, line);
+  fprintf(stderr, "\nFile: %s:%u\n", file, line);
   char *stacktrace = b_stacktrace_get_string();
-  fprintf(stderr, "stacktrace:\n%s\n\n", stacktrace);
+  fprintf(stderr, "Stacktrace:\n%s\n\n", stacktrace);
   abort();
 }
 
 // =============================================
 //
 //
-// Debug Print
+// Print
 //
 //
 // =============================================
 
 void _vgfx_debug_print(const char *msg, ...) {
-  printf("debug: ");
+
+  printf("Debug: ");
 
   va_list va_args;
   va_start(va_args, msg);
@@ -58,90 +61,110 @@ void _vgfx_debug_print(const char *msg, ...) {
   va_end(va_args);
 }
 
-/*****************************************************************************
- * - Static Variables
- * */
+// =============================================
+//
+//
+// UTF-8 & Unicode
+//
+//
+// =============================================
 
-static bool s_vgfx_core_glew_initialized = false;
+// 1 byte -> 0xxxxxxx -------- -------- -------- : default   =>  7 bit
+// 2 byte -> 110xxxxx 10xxxxxx -------- -------- : 5 + 6     => 11 bit
+// 3 byte -> 1110xxxx 10xxxxxx 10xxxxxx -------- : 4 + 6 * 2 => 16 bit
+// 4 byte -> 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx : 3 + 6 * 3 => 21 bit
+// FORMULA : (6 - (b - 1)) + ((b - 1) * 6)
 
-/*****************************************************************************
- * - VGFX Core
- * */
+utf8_char vgfx_utf8_encode(u32 unicode) {
 
-void vgfx_initialize() {
-  // Initialize GLFW
-  if (!glfwInit()) {
-    fprintf(stderr, "ERROR: Failed to initialize GLFW.\n");
+  // Find how many bits are used
+  usize bit = 0;
+  for (usize i = 31; i >= 0; --i) {
+    if (!VGFX_CHECK_BIT(unicode, i)) {
+      continue;
+    }
 
-    abort();
+    bit = i + 1;
+    break;
   }
 
-  // NOTE: Disabled due to UV changes.
-  // Set flip_vertical_on_load for stb_image
-  // stbi_set_flip_vertically_on_load(true);
-}
-
-void vgfx_terminate() {
-  // Terminate VGFX_Window
-  _vgfx_window_terminate();
-
-  // Set GLEW initialized flag to false
-  s_vgfx_core_glew_initialized = false;
-
-  // Terminate GLFW
-  glfwTerminate();
-}
-
-/*****************************************************************************
- * - OpenGL Helper Functions
- * */
-
-// TODO: Make this function set the upper bound for `vgfx_texture_handle_bind`.
-void _vgfx_dump_hardware_info() {
-  // Context info
-  const u8 *vend = glGetString(GL_VENDOR);
-  const u8 *rend = glGetString(GL_RENDERER);
-
-  printf("DEBUG: Context Info: %s :: %s\n", vend, rend);
-
-  // Maximum vertex attribute count
-  i32 max_attribs;
-  glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &max_attribs);
-
-  printf("DEBUG: Maximum available vertex attribute count: %d\n", max_attribs);
-
-  // Texture image units per stage
-  i32 image_units;
-  glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &image_units);
-
-  printf("DEBUG: Available image units per shader stage: %d\n", image_units);
-
-  // Total number of texture that can be bound
-  i32 max_image_units;
-  glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &max_image_units);
-
-  printf("DEBUG: Combined image units available: %d\n", max_image_units);
-}
-
-void _vgfx_glew_initialize() {
-  if (s_vgfx_core_glew_initialized) {
-    return;
+  // If the value is in ASCII range just return it as it is
+  if (bit < 8) {
+    return _vgfx_utf8_reverse_byte_order(unicode);
   }
 
-  gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+  // Find required byte sized to fit
+  usize byte = 0;
+  for (usize i = 0; i < 4; ++i) {
+    usize ab = (6 - i) + (i * 6);
 
-  // Enable depth test
-  glEnable(GL_DEPTH_TEST);
+    if (bit > ab) {
+      continue;
+    }
 
-  // Enable blending
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    byte = i + 1;
+    break;
+  }
 
-  // Dump hardware info
-#ifdef DEBUG
-  _vgfx_dump_hardware_info();
-#endif
+  utf8_char tmp = 0;
 
-  // Set s_vgfx_core_glew_initialized to true
-  s_vgfx_core_glew_initialized = true;
+  i32 rb = bit;
+
+  for (i32 i = 3; i >= 0; --i) {
+    for (i32 j = 7; j >= 0; --j) {
+      i32 b = (i * 8) + j;
+
+      // Place header markers and then skip
+      if (i == 3) {
+        if (j > 7 - (i32)byte) {
+          tmp |= 1 << b;
+          continue;
+        } else if (j > 7 - ((i32)byte + 1)) {
+          continue;
+        }
+      } else if (j == 7) {
+        tmp |= 1 << b;
+        continue;
+      } else if (j == 6) {
+        continue;
+      }
+
+      // Copy the each byte
+      u32 bm = VGFX_CHECK_BIT(unicode, rb - 1);
+      tmp |= bm << b;
+
+      rb -= 1;
+
+      // If there are no bits left to copy break the loop
+      if (rb == 0) {
+        break;
+      }
+    }
+
+    if (rb == 0) {
+      break;
+    }
+  }
+
+  return tmp;
+}
+
+void vgfx_utf8_to_cstr(utf8_char c, char *out) {
+
+  VGFX_DEBUG_ASSERT(out, "Can't convert utf8_char, C string is NULL.\n");
+
+  utf8_char r = _vgfx_utf8_reverse_byte_order(c);
+
+  memcpy(out, (&r), 4);
+  out[4] = '\0';
+}
+
+utf8_char _vgfx_utf8_reverse_byte_order(utf8_char c) {
+
+  utf8_char tmp = 0;
+  for (usize i = 0; i < 4; ++i) {
+    tmp |= ((c >> (i * 8)) & 0xFF) << ((4 * 8) - 8 - (i * 8));
+  }
+
+  return tmp;
 }

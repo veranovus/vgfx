@@ -1,10 +1,10 @@
 #include "vgfx/camera.h"
 #include "vgfx/core.h"
 #include "vgfx/font.h"
+#include "vgfx/os.h"
 #include "vgfx/render.h"
 #include "vgfx/shader.h"
 #include "vgfx/texture.h"
-#include "vgfx/window.h"
 #include <time.h>
 
 const usize WINDOW_WIDTH = 800;
@@ -17,21 +17,23 @@ const char *TEST_FONT_PATH = "res/font/FiraCode-Medium.ttf";
 const char *TEST_TEXTURE_PATH = "res/bunny.png";
 
 static VGFX_Camera *s_camera = NULL;
-static bool s_editor_mode = false;
 
 int main(i32 argc, char *argv[]) {
 
-  // VGFX setup
-  vgfx_initialize();
+  VGFX_UNUSED(argc);
+  VGFX_UNUSED(argv);
 
+  // VGFX setup
   VSTD_String title = vstd_string_format("%s | %s", WINDOW_TITLE, PKG_VERSION);
 
-  VGFX_Window *window = vgfx_window_new(&(VGFX_WindowDescriptor){
+  VGFX_OS_WindowHandle win = vgfx_os_window_open(&(VGFX_OS_WindowDesc){
       .title = title.ptr,
-      .size = {(i32)WINDOW_WIDTH, (i32)WINDOW_HEIGHT},
+      .width = WINDOW_WIDTH,
+      .height = WINDOW_HEIGHT,
       .vsync = false,
       .resizable = true,
       .decorated = true,
+      .visible = true,
   });
 
   vstd_string_free(&title);
@@ -149,16 +151,18 @@ int main(i32 argc, char *argv[]) {
     f32 diry = (rand() % 100 < 50) ? (rand() % 100) / -100.0f
                                    : (rand() % 100) / 100.0f;
 
-    vstd_vector_push(Object, objs,
+    vstd_vector_push(Object, (&objs),
                      ((Object){.pos = {x, y, 0.0f},
                                .scl = {25.0f, 25.0f, 1.0f},
                                .dir = {dirx, diry}}));
   }
 
+  bool run = true;
+
   volatile u32 fps_counter, fps;
   volatile f64 fps_timer = 0.0f;
   volatile f64 dt, last_frame;
-  while (!vgfx_window_get_window_close(window)) {
+  while (run) {
     // Time and delta time
     f64 time = glfwGetTime();
 
@@ -171,8 +175,23 @@ int main(i32 argc, char *argv[]) {
       fps_timer = 0;
       fps = fps_counter;
       fps_counter = 0;
-      printf("FPS :: %u\n", fps);
+      printf("FPS: %u\n", fps);
     }
+
+    VSTD_Vector(VGFX_OS_Event) events = vgfx_os_events(win);
+    vstd_vector_iter(VGFX_OS_Event, events, {
+      if (_$iter->type == VGFX_OS_EVENT_TYPE_WINDOW_CLOSE) {
+        run = false;
+      }
+
+      if (_$iter->type == VGFX_OS_EVENT_TYPE_CHAR) {
+        char chr[5];
+        vgfx_utf8_to_cstr(vgfx_utf8_encode(_$iter->char_codepoint), chr);
+
+        VGFX_DEBUG_PRINT("(Codepoint, UTF-8 Char) : (%d, %s)\n",
+                         _$iter->char_codepoint, chr);
+      }
+    });
 
     // Update camera view
     vgfx_camera_update_view(s_camera);
@@ -237,12 +256,14 @@ int main(i32 argc, char *argv[]) {
     // vgfx_texture_handle_unbind(0);
     glUseProgram(0);
 
-    vgfx_window_swap_buffers(window);
-    vgfx_window_poll_events(window);
+    // vgfx_window_swap_buffers(window);
+    // vgfx_window_poll_events(window);
+    vgfx_os_window_swap_buffers(win);
+    vgfx_os_poll_events();
   }
 
   // Delete vectors
-  vstd_vector_free(Object, objs);
+  vstd_vector_free(Object, (&objs));
   free(buff);
 
   // Delete render pipeline
@@ -257,8 +278,9 @@ int main(i32 argc, char *argv[]) {
   vgfx_camera_free(s_camera);
 
   // Free the vgfx
-  vgfx_window_free(window);
-  vgfx_terminate();
+  vgfx_os_window_free(win);
+  // vgfx_window_free(window);
+  // vgfx_terminate();
 
   return 0;
 }

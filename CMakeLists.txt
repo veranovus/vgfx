@@ -33,9 +33,11 @@ set(SOURCE_FILES
         src/vgfx/core.c
         src/vgfx/os.h
         src/vgfx/os.c
+        src/vgfx/asset.h
+        src/vgfx/asset.c
+        # src/vgfx/window.h
+        # src/vgfx/window.c
         src/vgfx/input.h
-        src/vgfx/window.h
-        src/vgfx/window.c
         src/vgfx/camera.h
         src/vgfx/camera.c
         src/vgfx/shader.h
@@ -48,8 +50,9 @@ set(SOURCE_FILES
         src/vgfx/render.c
 
         # vgfx/util
-        src/vgfx/util/camera_3d.h
-        src/vgfx/util/camera_3d.c
+        # TODO: Enable it after refactoring
+        # src/vgfx/util/camera_3d.h
+        # src/vgfx/util/camera_3d.c
 )
 
 # Export values

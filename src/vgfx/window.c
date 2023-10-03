@@ -80,7 +80,6 @@ VGFX_Window *vgfx_window_new(VGFX_WindowDescriptor *desc) {
   glfwMakeContextCurrent(window->handle);
 
   // Try to initialize GLEW
-  _vgfx_glew_initialize();
 
   // Set window's framebuffer size and GLViewport
   glfwGetFramebufferSize(window->handle, &window->framebuffer_size[0],

@@ -50,7 +50,7 @@ void _vgfx_assert_failed(const char *cond, const char *file, i32 line,
 // =============================================
 //
 //
-// Debug Print
+// Print
 //
 //
 // =============================================
@@ -70,3 +70,22 @@ void _vgfx_assert_failed(const char *cond, const char *file, i32 line,
 #endif
 
 void _vgfx_debug_print(const char *msg, ...);
+
+// =============================================
+//
+//
+// UTF-8 & Unicode
+//
+//
+// =============================================
+
+// TODO: Move this to its own section
+#define VGFX_CHECK_BIT(n, bit) ((n & (1 << (bit))) != false)
+
+typedef u32 utf8_char;
+
+void vgfx_utf8_to_cstr(utf8_char c, char *out);
+
+utf8_char vgfx_utf8_encode(u32 unicode);
+
+utf8_char _vgfx_utf8_reverse_byte_order(utf8_char c);

@@ -2,6 +2,8 @@
 
 #include "core.h"
 
+#include <pthread.h>
+
 // =============================================
 //
 //
@@ -36,6 +38,44 @@
   } while (0)
 #endif
 
+typedef i32 VGFX_AS_AssetType;
+enum VGFX_AS_AssetType {
+  VGFX_ASSET_TYPE_UNKNOWN,
+  VGFX_ASSET_TYPE_TEXTURE,
+  VGFX_ASSET_TYPE_FONT,
+  VGFX_ASSET_TYPE_LAST,
+};
+
+typedef struct VGFX_AS_Asset VGFX_AS_Asset;
+struct VGFX_AS_Asset {
+  i32 type;
+  void *handle;
+};
+
+typedef struct VGFX_AS_AssetThread VGFX_AS_AssetThread;
+
+typedef struct VGFX_AS_AssetServer VGFX_AS_AssetServer;
+struct VGFX_AS_AssetServer {
+  VSTD_Map(VGFX_AS_AssetType, VSTD_Vector(VGFX_AS_Asset *)) assets;
+  VSTD_Vector(VGFX_AS_AssetThread) threads;
+};
+
+VGFX_AS_AssetServer *vgfx_as_asset_server_new();
+
+void vgfx_as_asset_server_free(VGFX_AS_AssetServer *as);
+
+VGFX_AS_Asset *vgfx_as_asset_server_load(VGFX_AS_AssetServer *as,
+                                         VGFX_AS_AssetType type,
+                                         const char *path);
+
+// =============================================
+//
+//
+// Asset Loading
+//
+//
+// =============================================
+
 typedef struct VGFX_AS_Texture VGFX_AS_Texture;
 struct VGFX_AS_Texture {
   u32 handle;
@@ -56,42 +96,6 @@ struct VGFX_AS_Font {
   f32 size[2];
   VSTD_Vector(_VGFX_AS_Glyph) glyphs;
 };
-
-typedef i32 VGFX_AS_AssetType;
-enum VGFX_AS_AssetType {
-  VGFX_ASSET_TYPE_UNKNOWN,
-  VGFX_ASSET_TYPE_TEXTURE,
-  VGFX_ASSET_TYPE_FONT,
-
-  VGFX_ASSET_TYPE_LAST,
-};
-
-typedef struct VGFX_AS_Asset VGFX_AS_Asset;
-struct VGFX_AS_Asset {
-  i32 type;
-  void *handle;
-};
-
-typedef struct VGFX_AS_AssetServer VGFX_AS_AssetServer;
-struct VGFX_AS_AssetServer {
-  VSTD_Map(VGFX_AS_AssetType, VSTD_Vector(VGFX_AS_Asset)) assets;
-};
-
-VGFX_AS_AssetServer *vgfx_as_asset_server_new();
-
-void vgfx_as_asset_server_free(VGFX_AS_AssetServer *as);
-
-VGFX_AS_Asset vgfx_as_asset_server_load(VGFX_AS_AssetServer *as,
-                                        VGFX_AS_AssetType type,
-                                        const char *path);
-
-// =============================================
-//
-//
-// Asset Loading
-//
-//
-// =============================================
 
 void *_vgfx_as_load_texture(void *ptr);
 

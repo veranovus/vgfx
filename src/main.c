@@ -183,14 +183,6 @@ int main(i32 argc, char *argv[]) {
       if (_$iter->type == VGFX_OS_EVENT_TYPE_WINDOW_CLOSE) {
         run = false;
       }
-
-      if (_$iter->type == VGFX_OS_EVENT_TYPE_CHAR) {
-        char chr[5];
-        vgfx_utf8_to_cstr(vgfx_utf8_encode(_$iter->char_codepoint), chr);
-
-        VGFX_DEBUG_PRINT("(Codepoint, UTF-8 Char) : (%d, %s)\n",
-                         _$iter->char_codepoint, chr);
-      }
     });
 
     // Update camera view

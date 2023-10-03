@@ -56,36 +56,28 @@ void _vgfx_assert_failed(const char *cond, const char *file, i32 line,
 // =============================================
 
 #ifndef NDEBUG
-#define VGFX_ENABLE_DEBUG_PRINT 1
+#define VGFX_ENABLE_DEBUG_PRINTS 1
 #else
-#define VGFX_ENABLE_DEBUG_PRINT 0
+#define VGFX_ENABLE_DEBUG_PRINTS 0
 #endif
 
 #ifndef VGFX_DEBUG_PRINT
 #define VGFX_DEBUG_PRINT(...)                                                  \
   do {                                                                         \
-    if (VGFX_ENABLE_DEBUG_PRINT)                                               \
+    if (VGFX_ENABLE_DEBUG_PRINTS)                                              \
       _vgfx_debug_print(__VA_ARGS__);                                          \
+  } while (0)
+#endif
+
+#ifndef VGFX_DEBUG_WARN
+#define VGFX_DEBUG_WARN(...)                                                   \
+  do {                                                                         \
+    if (VGFX_ENABLE_DEBUG_PRINTS) {                                            \
+      _vgfx_debug_warn(__VA_ARGS__);                                           \
+    }                                                                          \
   } while (0)
 #endif
 
 void _vgfx_debug_print(const char *msg, ...);
 
-// =============================================
-//
-//
-// UTF-8 & Unicode
-//
-//
-// =============================================
-
-// TODO: Move this to its own section
-#define VGFX_CHECK_BIT(n, bit) ((n & (1 << (bit))) != false)
-
-typedef u32 utf8_char;
-
-void vgfx_utf8_to_cstr(utf8_char c, char *out);
-
-utf8_char vgfx_utf8_encode(u32 unicode);
-
-utf8_char _vgfx_utf8_reverse_byte_order(utf8_char c);
+void _vgfx_debug_warn(const char *msg, ...);

@@ -1,3 +1,4 @@
+#include "vgfx/asset.h"
 #include "vgfx/camera.h"
 #include "vgfx/core.h"
 #include "vgfx/font.h"
@@ -38,6 +39,13 @@ int main(i32 argc, char *argv[]) {
 
   vstd_string_free(&title);
 
+  // Asset Server
+  VGFX_AS_AssetServer *asset_server = vgfx_as_asset_server_new();
+
+  // Load texture
+  VGFX_AS_Asset *texture = vgfx_as_asset_server_load(
+      asset_server, VGFX_ASSET_TYPE_TEXTURE, TEST_TEXTURE_PATH);
+
   // Base Shader program
   VGFX_Shader base_shaders[2];
 
@@ -64,10 +72,6 @@ int main(i32 argc, char *argv[]) {
   }
 
   VGFX_ShaderProgram base_program = vgfx_shader_program_new(base_shaders, 2);
-
-  // Load texture
-  VGFX_Texture2D *texture =
-      vgfx_texture_new(TEST_TEXTURE_PATH, GL_REPEAT, GL_NEAREST);
 
   // Setup camera
   s_camera = vgfx_camera_new(glm_rad(45.0f), WINDOW_WIDTH, WINDOW_HEIGHT, 0.0f,
@@ -159,6 +163,11 @@ int main(i32 argc, char *argv[]) {
 
   bool run = true;
 
+  while (vgfx_as_asset_server_load_status(asset_server, texture) !=
+         VGFX_AS_ASSET_LOAD_STATE_LOADED) {
+    VGFX_DEBUG_PRINT("LOADING ASSETS...\n");
+  }
+
   volatile u32 fps_counter, fps;
   volatile f64 fps_timer = 0.0f;
   volatile f64 dt, last_frame;
@@ -227,6 +236,10 @@ int main(i32 argc, char *argv[]) {
     vgfx_buffer_sub_data(dbuff, GL_ARRAY_BUFFER, 0,
                          sizeof(mat4) * instance_count, &buff[0]);
 
+    // Get texture
+    VGFX_AS_Texture *texture_handle = NULL;
+    VGFX_ASSET_DEBUG_CAST(texture, VGFX_ASSET_TYPE_TEXTURE, texture_handle);
+
     // Render the scene
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -236,20 +249,16 @@ int main(i32 argc, char *argv[]) {
     vgfx_shader_program_uniform_f1(base_program, "u_time", (f32)time);
     vgfx_shader_program_uniform_i1(base_program, "u_texture", 0);
 
-    vgfx_texture_bind(texture, 0);
-    // vgfx_texture_handle_bind(font->handle, 0);
+    vgfx_texture_handle_bind(texture_handle->handle, 0);
 
     glBindVertexArray(va);
     glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0,
                             instance_count);
 
     glBindVertexArray(0);
-    vgfx_texture_unbind(texture);
-    // vgfx_texture_handle_unbind(0);
+    vgfx_texture_handle_unbind(0);
     glUseProgram(0);
 
-    // vgfx_window_swap_buffers(window);
-    // vgfx_window_poll_events(window);
     vgfx_os_window_swap_buffers(win);
     vgfx_os_poll_events();
   }
@@ -265,11 +274,12 @@ int main(i32 argc, char *argv[]) {
   vgfx_buffer_free(dbuff);
 
   // Free resources
-  vgfx_texture_free(texture);
+  // vgfx_texture_free(texture);
   vgfx_shader_program_free(base_program);
   vgfx_camera_free(s_camera);
 
   // Free the vgfx
+  vgfx_as_asset_server_free(asset_server);
   vgfx_os_window_free(win);
   // vgfx_window_free(window);
   // vgfx_terminate();

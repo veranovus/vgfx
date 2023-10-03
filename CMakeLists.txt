@@ -67,5 +67,5 @@ find_library(COCOA Cocoa)
 find_library(IOKIT IOKit)
 
 target_link_libraries(${TARGET_NAME} PRIVATE ${COCOA} ${IOKIT} OpenGL::GL Freetype::Freetype)
-target_compile_options(${TARGET_NAME} PRIVATE -Wall -Wextra)
+target_compile_options(${TARGET_NAME} PRIVATE -Wall -Wextra -pthread)
 

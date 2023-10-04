@@ -1,7 +1,6 @@
 #include "vgfx/asset.h"
 #include "vgfx/camera.h"
 #include "vgfx/core.h"
-#include "vgfx/font.h"
 #include "vgfx/os.h"
 #include "vgfx/render.h"
 #include "vgfx/shader.h"
@@ -44,7 +43,12 @@ int main(i32 argc, char *argv[]) {
 
   // Load texture
   VGFX_AS_Asset *texture = vgfx_as_asset_server_load(
-      asset_server, VGFX_ASSET_TYPE_TEXTURE, TEST_TEXTURE_PATH);
+      asset_server, &(VGFX_AS_AssetDesc){
+                        .path = TEST_TEXTURE_PATH,
+                        .type = VGFX_ASSET_TYPE_TEXTURE,
+                        .texture_filter = GL_NEAREST,
+                        .texture_wrap = GL_REPEAT,
+                    });
 
   // Base Shader program
   VGFX_Shader base_shaders[2];
@@ -163,11 +167,6 @@ int main(i32 argc, char *argv[]) {
 
   bool run = true;
 
-  while (vgfx_as_asset_server_load_status(asset_server, texture) !=
-         VGFX_AS_ASSET_LOAD_STATE_LOADED) {
-    VGFX_DEBUG_PRINT("LOADING ASSETS...\n");
-  }
-
   volatile u32 fps_counter, fps;
   volatile f64 fps_timer = 0.0f;
   volatile f64 dt, last_frame;
@@ -249,14 +248,16 @@ int main(i32 argc, char *argv[]) {
     vgfx_shader_program_uniform_f1(base_program, "u_time", (f32)time);
     vgfx_shader_program_uniform_i1(base_program, "u_texture", 0);
 
-    vgfx_texture_handle_bind(texture_handle->handle, 0);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture_handle->handle);
 
     glBindVertexArray(va);
     glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0,
                             instance_count);
 
     glBindVertexArray(0);
-    vgfx_texture_handle_unbind(0);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, 0);
     glUseProgram(0);
 
     vgfx_os_window_swap_buffers(win);

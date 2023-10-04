@@ -33,6 +33,8 @@ set(SOURCE_FILES
         src/vgfx/core.c
         src/vgfx/os.h
         src/vgfx/os.c
+        src/vgfx/gl.h
+        src/vgfx/gl.c
         src/vgfx/asset.h
         src/vgfx/asset.c
         # src/vgfx/window.h
@@ -42,10 +44,6 @@ set(SOURCE_FILES
         src/vgfx/camera.c
         src/vgfx/shader.h
         src/vgfx/shader.c
-        src/vgfx/texture.h
-        src/vgfx/texture.c
-        src/vgfx/font.h
-        src/vgfx/font.c
         src/vgfx/render.h
         src/vgfx/render.c
 

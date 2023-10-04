@@ -1,6 +1,7 @@
 #include "asset.h"
+#include "vstd/vstd.h"
 
-#include <pthread.h>
+#include <freetype/freetype.h>
 #include <stb/stb_image.h>
 
 // =============================================
@@ -10,12 +11,6 @@
 //
 //
 // =============================================
-
-struct VGFX_AS_AssetThread {
-  pthread_t thread;
-  VGFX_AS_AssetLoadState load_status;
-  VGFX_AS_Asset *handle;
-};
 
 VGFX_AS_AssetServer *vgfx_as_asset_server_new() {
 
@@ -30,23 +25,10 @@ VGFX_AS_AssetServer *vgfx_as_asset_server_new() {
                  (vstd_vector_new(VGFX_AS_Asset *)));
   }
 
-  as->threads = vstd_vector_new(VGFX_AS_AssetThread);
-
   return as;
 }
 
 void vgfx_as_asset_server_free(VGFX_AS_AssetServer *as) {
-
-  // If there are active threads wait for them to finish
-  for (usize i = 0; i < as->threads.len; ++i) {
-    VGFX_AS_AssetThread *at =
-        &vstd_vector_get(VGFX_AS_AssetThread, as->threads, i);
-
-    pthread_join(at->thread, NULL);
-  }
-
-  // Free threads vector
-  vstd_vector_free(VGFX_AS_AssetThread, (&as->threads));
 
   // Free assets
   for (usize i = 0; i < as->assets.keys.len; ++i) {
@@ -54,25 +36,30 @@ void vgfx_as_asset_server_free(VGFX_AS_AssetServer *as) {
         &vstd_vector_get(VSTD_Vector(VGFX_AS_Asset *), as->assets.vals, i);
 
     vstd_vector_iter(VGFX_AS_Asset *, (*vec), {
-      i32 type = (*_$iter)->type;
+      VGFX_AS_Asset *asset = (*_$iter);
+
+      // Validate asset type
+      i32 type = asset->type;
       if (type < 0 || type >= VGFX_ASSET_TYPE_LAST) {
         type = VGFX_ASSET_TYPE_UNKNOWN;
       }
 
+      // Free asset handle
       switch (type) {
       case VGFX_ASSET_TYPE_UNKNOWN:
-        VGFX_ABORT("Failed to free asset, asset type is `%s`.",
-                   VSTD_STRINGIFY(VGFX_ASSET_TYPE_UNKNOWN));
+        VGFX_ABORT("Failed to free asset, unknown asset type `%d`.",
+                   asset->type);
         break;
       case VGFX_ASSET_TYPE_TEXTURE:
-        _vgfx_as_texture_free((*_$iter)->handle);
+        _vgfx_as_free_texture(asset->handle);
         break;
       case VGFX_ASSET_TYPE_FONT:
-        _vgfx_as_font_free((*_$iter)->handle);
+        _vgfx_as_free_font(asset->handle);
         break;
       }
 
-      free((*_$iter));
+      // Free asset
+      free(asset);
     });
   }
 
@@ -81,133 +68,49 @@ void vgfx_as_asset_server_free(VGFX_AS_AssetServer *as) {
 }
 
 VGFX_AS_Asset *vgfx_as_asset_server_load(VGFX_AS_AssetServer *as,
-                                         VGFX_AS_AssetType type,
-                                         const char *path) {
-  _vgfx_as_validate_asset_path(path);
+                                         VGFX_AS_AssetDesc *desc) {
+  VGFX_ASSERT(desc, "Asset Descriptor can't be NULL");
 
-  // Create new asset handle
-  VGFX_AS_Asset *handle = (VGFX_AS_Asset *)malloc(sizeof(VGFX_AS_Asset));
-  *handle = (VGFX_AS_Asset){
+  // Validate asset path
+  _vgfx_as_validate_asset_path(desc->path);
+
+  // Validate asset type
+  VGFX_AS_AssetType type = desc->type;
+  if (type < 0 || type >= VGFX_ASSET_TYPE_LAST) {
+    type = VGFX_ASSET_TYPE_UNKNOWN;
+  }
+
+  // Create asset's hanlde
+  void *handle = NULL;
+  switch (type) {
+  case VGFX_ASSET_TYPE_UNKNOWN:
+    VGFX_ABORT("Failed to load asset, unknown asset type `%d`.", desc->type);
+    break;
+  case VGFX_ASSET_TYPE_TEXTURE:
+    handle = _vgfx_as_load_texture(desc);
+    break;
+  case VGFX_ASSET_TYPE_FONT:
+    handle = _vgfx_as_load_font(desc);
+    break;
+  }
+
+  // Create asset
+  VGFX_AS_Asset *asset = (VGFX_AS_Asset *)malloc(sizeof(VGFX_AS_Asset));
+  *asset = (VGFX_AS_Asset){
       .type = type,
-      .handle = NULL,
+      .handle = handle,
   };
 
+  // Set asset handle
   VSTD_Vector(VGFX_AS_Asset *) * vec;
   vstd_map_get(VGFX_AS_AssetType, VSTD_Vector(VGFX_AS_Asset *), as->assets,
                type, vec);
 
   VGFX_ASSERT(vec, "AssetServer for this asset type is NULL.");
 
-  vstd_vector_push(VGFX_AS_Asset *, vec, handle);
+  vstd_vector_push(VGFX_AS_Asset *, vec, asset);
 
-  // Prepare the asset loading func and descriptor
-  if (type < 0 || type >= VGFX_ASSET_TYPE_LAST) {
-    type = VGFX_ASSET_TYPE_UNKNOWN;
-  }
-
-  void *(*asset_fnc)(void *) = NULL;
-
-  _VGFX_AS_AssetLoadDesc *asset_desc =
-      (_VGFX_AS_AssetLoadDesc *)malloc(sizeof(_VGFX_AS_AssetLoadDesc));
-
-  asset_desc->asset = handle;
-  asset_desc->path = path;
-
-  switch (type) {
-  case VGFX_ASSET_TYPE_UNKNOWN:
-    VGFX_ABORT("Failed to load asset, asset type is `%s`.",
-               VSTD_STRINGIFY(VGFX_ASSET_TYPE_UNKNOWN));
-    break;
-  case VGFX_ASSET_TYPE_TEXTURE:
-    asset_fnc = _vgfx_as_load_texture;
-
-    asset_desc->texture_filter = GL_LINEAR;
-    asset_desc->texture_wrap = GL_REPEAT;
-    break;
-  case VGFX_ASSET_TYPE_FONT:
-    asset_fnc = _vgfx_as_load_font;
-
-    asset_desc->font_size = 64;
-    break;
-  }
-
-  // Prepare the asset loading thread
-  vstd_vector_push(VGFX_AS_AssetThread, (&as->threads),
-                   ((VGFX_AS_AssetThread){.handle = handle}));
-
-  VGFX_AS_AssetThread *at =
-      &vstd_vector_get(VGFX_AS_AssetThread, as->threads, (as->threads.len - 1));
-
-  at->load_status = VGFX_AS_ASSET_LOAD_STATE_PENDING;
-
-  // Bind load status to load desc
-  asset_desc->load_status = &at->load_status;
-
-  // Create the thread and send load desc
-  VGFX_ASSERT(!pthread_create(&at->thread, NULL, asset_fnc, asset_desc),
-              "Failed to create thread to load Asset.");
-
-  return handle;
-}
-
-VGFX_AS_AssetLoadState vgfx_as_asset_server_load_status(VGFX_AS_AssetServer *as,
-                                                        VGFX_AS_Asset *asset) {
-  VGFX_AS_AssetLoadState status;
-
-  bool remove_asset = false;
-  isize remove_index = -1;
-
-  vstd_vector_iter(VGFX_AS_AssetThread, as->threads, {
-    if (_$iter->handle != asset) {
-      continue;
-    }
-
-    switch (_$iter->load_status) {
-    case VGFX_AS_ASSET_LOAD_STATE_LOADED:
-      remove_index = _$i;
-      break;
-    case VGFX_AS_ASSET_LOAD_STATE_ERROR:
-      remove_index = _$i;
-      remove_asset = true;
-      break;
-    }
-
-    status = _$iter->load_status;
-    break;
-  });
-
-  if (remove_index != -1) {
-    // Remove the completed thread
-    vstd_vector_remove(VGFX_AS_AssetThread, (&as->threads), remove_index);
-
-    // If asset failed to load remove it too
-    if (remove_asset) {
-      VSTD_Vector(VGFX_AS_Asset *) *vec = NULL;
-      vstd_map_get(VGFX_AS_AssetType, VSTD_Vector(VGFX_AS_Asset *), as->assets,
-                   asset->type, vec);
-
-      VGFX_ASSERT(vec, "AssetServer for this asset type is NULL.");
-
-      // Find the asset's position
-      isize remove_index = -1;
-      vstd_vector_iter(VGFX_AS_Asset *, (*vec), {
-        if ((*_$iter) != asset) {
-          continue;
-        }
-
-        remove_index = _$i;
-        break;
-      });
-
-      VGFX_ASSERT(remove_index != -1, "Asset has already been deleted.");
-
-      vstd_vector_remove(VGFX_AS_Asset *, vec, remove_index);
-
-      free(asset);
-    }
-  }
-
-  return status;
+  return asset;
 }
 
 void _vgfx_as_validate_asset_path(const char *path) {
@@ -227,31 +130,7 @@ void _vgfx_as_validate_asset_path(const char *path) {
 //
 // =============================================
 
-void _vgfx_as_texture_free(VGFX_AS_Texture *handle) {
-
-  glDeleteTextures(1, &handle->handle);
-
-  free(handle);
-}
-
-void _vgfx_as_font_free(VGFX_AS_Font *handle) {
-
-  VGFX_UNUSED(handle);
-
-  VGFX_ABORT("Unimplemented.");
-}
-
-// =============================================
-//
-//
-// Asset Loading
-//
-//
-// =============================================
-
-void *_vgfx_as_load_texture(void *ptr) {
-
-  _VGFX_AS_AssetLoadDesc *desc = (_VGFX_AS_AssetLoadDesc *)ptr;
+void *_vgfx_as_load_texture(VGFX_AS_AssetDesc *desc) {
 
   // Create OpenGL texture
   VGFX_AS_TextureHandle th;
@@ -309,22 +188,120 @@ void *_vgfx_as_load_texture(void *ptr) {
       .channel = channel,
   };
 
-  // Set handle of Asset
-  desc->asset->handle = handle;
-
-  // Set load status
-  *(desc->load_status) = VGFX_AS_ASSET_LOAD_STATE_LOADED;
-
-  VGFX_DEBUG_PRINT("Asset loaded successfully.\n");
-
-  return NULL;
+  return handle;
 }
 
-void *_vgfx_as_load_font(void *ptr) {
+void *_vgfx_as_load_font(VGFX_AS_AssetDesc *desc) {
 
-  _VGFX_AS_AssetLoadDesc *desc = (_VGFX_AS_AssetLoadDesc *)ptr;
+  FT_Library ft;
+  VGFX_ASSERT(FT_Init_FreeType(&ft), "Freetype failed to initiazlize.");
 
-  VGFX_UNUSED(desc);
+  FT_Face face;
+  VGFX_ASSERT(!FT_New_Face(ft, desc->path, 0, &face),
+              "Failed to load font from, `%s`.", desc->path);
 
-  VGFX_ABORT("Unimplemented.");
+  VGFX_ASSERT(!FT_Set_Pixel_Sizes(face, 0, desc->font_size),
+              "Failed to set font size to `%u` pixels.", desc->font_size);
+
+  // Load flags
+  const i32 load_flags = FT_LOAD_RENDER | FT_LOAD_TARGET_(FT_RENDER_MODE_SDF);
+
+  // Create font handle
+  VGFX_AS_Font *font = (VGFX_AS_Font *)calloc(1, sizeof(VGFX_AS_Font));
+
+  font->range[0] = desc->font_range[0];
+  font->range[1] = desc->font_range[1];
+
+  // Calculate font size
+  for (u32 i = font->range[0]; i < font->range[1]; ++i) {
+    if (FT_Load_Char(face, i, load_flags)) {
+      fprintf(stderr, "Failed to load glyph for the character, `%d`.\n", i);
+      abort();
+    }
+
+    font->size[0] += face->glyph->bitmap.width;
+    if (font->size[1] < (i32)face->glyph->bitmap.rows) {
+      font->size[1] = face->glyph->bitmap.rows;
+    }
+  }
+
+  // Create font's glyph vector
+  i32 cap = font->range[1] - font->range[0];
+  VGFX_ASSERT(cap > 0, "Invalid font range, upper bound has to be bigger.");
+
+  font->glyphs = vstd_vector_with_capacity(_VGFX_AS_Glyph, cap);
+
+  // Create texture handle
+  glGenTextures(1, &font->handle);
+  glBindTexture(GL_TEXTURE_2D, font->handle);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, desc->font_filter);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, desc->font_filter);
+
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, font->size[0], font->size[1], 0,
+               GL_RED, GL_UNSIGNED_BYTE, NULL);
+  glBindTexture(GL_TEXTURE_2D, 0);
+
+  // Bind the texture
+  glBindTexture(GL_TEXTURE_2D, font->handle);
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+  // Load glyphs
+  i32 x_offset = 0;
+  for (i32 i = 0; i < cap; ++i) {
+    _VGFX_AS_Glyph *glyph = &vstd_vector_get(_VGFX_AS_Glyph, font->glyphs, i);
+
+    if (FT_Load_Char(face, i, load_flags)) {
+      fprintf(stderr, "Failed to load glyph for the character, `%d`.\n", i);
+      abort();
+    }
+
+    if (FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL)) {
+      fprintf(stderr, "Failed to render glyph for the character, `%d`.\n", i);
+      abort();
+    }
+
+    glyph->advn[0] = face->glyph->advance.x >> 6;
+    glyph->advn[1] = face->glyph->advance.y >> 6;
+    glyph->size[0] = face->glyph->bitmap.width;
+    glyph->size[1] = face->glyph->bitmap.rows;
+    glyph->brng[0] = face->glyph->bitmap_left;
+    glyph->brng[1] = face->glyph->bitmap_top;
+    glyph->offset = (f32)x_offset / (f32)font->size[0];
+
+    glTexSubImage2D(GL_TEXTURE_2D, 0, x_offset, 0, glyph->size[0],
+                    glyph->size[1], GL_RED, GL_UNSIGNED_BYTE,
+                    face->glyph->bitmap.buffer);
+
+    x_offset += glyph->size[0];
+  }
+
+  // Unbind texture
+  glBindTexture(GL_TEXTURE_2D, 0);
+
+  // Cleanup
+  FT_Done_Face(face);
+  FT_Done_FreeType(ft);
+
+  return font;
+}
+
+void _vgfx_as_free_texture(VGFX_AS_Texture *handle) {
+
+  glDeleteTextures(1, &handle->handle);
+
+  free(handle);
+}
+
+void _vgfx_as_free_font(VGFX_AS_Font *handle) {
+
+  glDeleteTextures(1, &handle->handle);
+
+  vstd_vector_free(_VGFX_AS_Glyph, (&handle->glyphs));
+
+  free(handle);
 }

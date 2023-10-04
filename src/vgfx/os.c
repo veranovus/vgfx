@@ -20,6 +20,8 @@ static VSTD_Map(void *, VSTD_Vector(VGFX_OS_Event)) s_os_event_map;
 
 VGFX_OS_WindowHandle vgfx_os_window_open(VGFX_OS_WindowDesc *desc) {
 
+  VGFX_ASSERT(desc, "Window Descriptro can't be NULL");
+
   if (!s_os_event_map_init) {
     s_os_event_map_init = true;
 

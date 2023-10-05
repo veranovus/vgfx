@@ -69,7 +69,7 @@ void vgfx_as_asset_server_free(VGFX_AS_AssetServer *as) {
 
 VGFX_AS_Asset *vgfx_as_asset_server_load(VGFX_AS_AssetServer *as,
                                          VGFX_AS_AssetDesc *desc) {
-  VGFX_ASSERT(desc, "Asset Descriptor can't be NULL");
+  VGFX_ASSERT_NON_NULL(desc);
 
   // Validate asset path
   _vgfx_as_validate_asset_path(desc->path);

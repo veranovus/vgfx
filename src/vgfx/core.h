@@ -42,6 +42,9 @@
 #define VGFX_DEBUG_ASSERT(cond, ...) (void)(cond)
 #endif
 
+#define VGFX_ASSERT_NON_NULL(val) VGFX_ASSERT(val, "%s can't be NULL.", #val)
+#define VGFX_ASSERT_NON_ZERO(val) VGFX_ASSERT(val, "%s can't be zero.", #val)
+
 _Noreturn void _vgfx_abort(const char *file, i32 line, const char *msg, ...);
 
 void _vgfx_assert_failed(const char *cond, const char *file, i32 line,
@@ -50,7 +53,7 @@ void _vgfx_assert_failed(const char *cond, const char *file, i32 line,
 // =============================================
 //
 //
-// Print
+// Debug Print
 //
 //
 // =============================================

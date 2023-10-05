@@ -1,8 +1,8 @@
 #include "vgfx/asset.h"
 #include "vgfx/camera.h"
 #include "vgfx/core.h"
+#include "vgfx/gl.h"
 #include "vgfx/os.h"
-#include "vgfx/render.h"
 #include "vgfx/shader.h"
 #include "vgfx/texture.h"
 #include <time.h>
@@ -91,50 +91,51 @@ int main(i32 argc, char *argv[]) {
 
   u32 indices[] = {0, 1, 3, 1, 2, 3};
 
-  VGFX_Buffer vbuff = vgfx_buffer_new(&(VGFX_BufferDesc){
+  VGFX_GL_Buffer vbuff = vgfx_gl_buffer_create(&(VGFX_GL_BufferDesc){
       .type = GL_ARRAY_BUFFER,
       .usage = GL_STATIC_DRAW,
       .size = sizeof(vertices),
       .data = vertices,
   });
 
-  VGFX_Buffer ibuff = vgfx_buffer_new(&(VGFX_BufferDesc){
+  VGFX_GL_Buffer ibuff = vgfx_gl_buffer_create(&(VGFX_GL_BufferDesc){
       .type = GL_ELEMENT_ARRAY_BUFFER,
       .usage = GL_STATIC_DRAW,
       .size = sizeof(indices),
       .data = indices,
   });
 
-  VGFX_Buffer dbuff = vgfx_buffer_new(&(VGFX_BufferDesc){
+  VGFX_GL_Buffer dbuff = vgfx_gl_buffer_create(&(VGFX_GL_BufferDesc){
       .type = GL_ARRAY_BUFFER,
       .usage = GL_DYNAMIC_DRAW,
       .size = sizeof(mat4) * MAX_INSTANCE,
       .data = NULL,
   });
 
-  VGFX_VertexArray va = vgfx_vertex_array_new(&(VGFX_VertexArrayDesc){
-      .index_buffer = ibuff,
-      .layouts = {{
-                      .buffer = vbuff,
-                      .update = 0,
-                      .attrib =
-                          {
-                              [0] = {3, GL_FLOAT, GL_FALSE},
-                              [1] = {2, GL_FLOAT, GL_FALSE},
-                          },
-                  },
-                  {
-                      .buffer = dbuff,
-                      .update = 1,
-                      .attrib =
-                          {
-                              [2] = {4, GL_FLOAT, GL_FALSE},
-                              [3] = {4, GL_FLOAT, GL_FALSE},
-                              [4] = {4, GL_FLOAT, GL_FALSE},
-                              [5] = {4, GL_FLOAT, GL_FALSE},
-                          },
-                  }},
-  });
+  VGFX_GL_VertexArray va =
+      vgfx_gl_vertex_array_create(&(VGFX_GL_VertexArrayDesc){
+          .index_buffer = ibuff,
+          .layouts = {{
+                          .buff = vbuff,
+                          .update = 0,
+                          .attribs =
+                              {
+                                  [0] = {3, GL_FLOAT, GL_FALSE},
+                                  [1] = {2, GL_FLOAT, GL_FALSE},
+                              },
+                      },
+                      {
+                          .buff = dbuff,
+                          .update = 1,
+                          .attribs =
+                              {
+                                  [2] = {4, GL_FLOAT, GL_FALSE},
+                                  [3] = {4, GL_FLOAT, GL_FALSE},
+                                  [4] = {4, GL_FLOAT, GL_FALSE},
+                                  [5] = {4, GL_FLOAT, GL_FALSE},
+                              },
+                      }},
+      });
 
   mat4 *buff = (mat4 *)calloc(MAX_INSTANCE, sizeof(mat4));
 
@@ -232,8 +233,7 @@ int main(i32 argc, char *argv[]) {
       instance_count += 1;
     }
 
-    vgfx_buffer_sub_data(dbuff, GL_ARRAY_BUFFER, 0,
-                         sizeof(mat4) * instance_count, &buff[0]);
+    vgfx_gl_buffer_sub_data(&dbuff, 0, sizeof(mat4) * instance_count, &buff[0]);
 
     // Get texture
     VGFX_AS_Texture *texture_handle = NULL;
@@ -251,7 +251,7 @@ int main(i32 argc, char *argv[]) {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture_handle->handle);
 
-    glBindVertexArray(va);
+    glBindVertexArray(va.handle);
     glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0,
                             instance_count);
 
@@ -269,10 +269,10 @@ int main(i32 argc, char *argv[]) {
   free(buff);
 
   // Delete render pipeline
-  vgfx_vertex_array_free(va);
-  vgfx_buffer_free(vbuff);
-  vgfx_buffer_free(ibuff);
-  vgfx_buffer_free(dbuff);
+  vgfx_gl_vertex_array_delete(&va);
+  vgfx_gl_buffer_delete(&vbuff);
+  vgfx_gl_buffer_delete(&ibuff);
+  vgfx_gl_buffer_delete(&dbuff);
 
   // Free resources
   // vgfx_texture_free(texture);

@@ -112,30 +112,27 @@ int main(i32 argc, char *argv[]) {
       .data = NULL,
   });
 
-  VGFX_GL_VertexArray va =
-      vgfx_gl_vertex_array_create(&(VGFX_GL_VertexArrayDesc){
-          .index_buffer = ibuff,
-          .layouts = {{
-                          .buff = vbuff,
-                          .update = 0,
-                          .attribs =
-                              {
-                                  [0] = {3, GL_FLOAT, GL_FALSE},
-                                  [1] = {2, GL_FLOAT, GL_FALSE},
-                              },
-                      },
-                      {
-                          .buff = dbuff,
-                          .update = 1,
-                          .attribs =
-                              {
-                                  [2] = {4, GL_FLOAT, GL_FALSE},
-                                  [3] = {4, GL_FLOAT, GL_FALSE},
-                                  [4] = {4, GL_FLOAT, GL_FALSE},
-                                  [5] = {4, GL_FLOAT, GL_FALSE},
-                              },
-                      }},
-      });
+  VGFX_GL_VertexArray va = vgfx_gl_vertex_array_create();
+
+  vgfx_gl_vertex_array_layout(
+      &va, &(VGFX_GL_VertexLayout){.buff = vbuff,
+                                   .update = 0,
+                                   .attribs = {
+                                       [0] = {3, GL_FLOAT, GL_FALSE},
+                                       [1] = {2, GL_FLOAT, GL_FALSE},
+                                   }});
+
+  vgfx_gl_vertex_array_layout(
+      &va, &(VGFX_GL_VertexLayout){.buff = dbuff,
+                                   .update = 1,
+                                   .attribs = {
+                                       [2] = {4, GL_FLOAT, GL_FALSE},
+                                       [3] = {4, GL_FLOAT, GL_FALSE},
+                                       [4] = {4, GL_FLOAT, GL_FALSE},
+                                       [5] = {4, GL_FLOAT, GL_FALSE},
+                                   }});
+
+  vgfx_gl_vertex_array_index_buffer(&va, &ibuff);
 
   mat4 *buff = (mat4 *)calloc(MAX_INSTANCE, sizeof(mat4));
 

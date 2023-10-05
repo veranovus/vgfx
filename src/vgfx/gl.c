@@ -50,35 +50,10 @@ void vgfx_gl_buffer_sub_data(VGFX_GL_Buffer *buff, usize offset, usize size,
   glBindBuffer(buff->type, 0);
 }
 
-VGFX_GL_VertexArray vgfx_gl_vertex_array_create(VGFX_GL_VertexArrayDesc *desc) {
-
-  VGFX_ASSERT_NON_NULL(desc);
+VGFX_GL_VertexArray vgfx_gl_vertex_array_create() {
 
   VGFX_GL_VertexArray va;
   glGenVertexArrays(1, &va.handle);
-
-  // Set layouts
-  for (usize i = 0; i < VGFX_GL_MAX_BUFFER; ++i) {
-    VGFX_GL_VertexLayout *layout = &desc->layouts[i];
-
-    if (!layout->buff.handle) {
-      continue;
-    }
-
-    vgfx_gl_vertex_array_layout(&va, layout);
-  }
-
-  // Set index buffer
-  if (desc->index_buffer.handle) {
-    VGFX_ASSERT(desc->index_buffer.type == GL_ELEMENT_ARRAY_BUFFER,
-                "Index buffer's type is wrong.");
-
-    glBindVertexArray(va.handle);
-    glBindBuffer(desc->index_buffer.type, desc->index_buffer.handle);
-
-    glBindVertexArray(0);
-    glBindBuffer(desc->index_buffer.type, 0);
-  }
 
   return va;
 }
@@ -148,6 +123,22 @@ void vgfx_gl_vertex_array_layout(VGFX_GL_VertexArray *va,
 
   glBindVertexArray(0);
   glBindBuffer(layout->buff.type, layout->buff.handle);
+}
+
+void vgfx_gl_vertex_array_index_buffer(VGFX_GL_VertexArray *va,
+                                       VGFX_GL_Buffer *buff) {
+  VGFX_ASSERT_NON_NULL(va);
+  VGFX_ASSERT_NON_NULL(buff);
+  VGFX_ASSERT_NON_ZERO(buff->handle);
+
+  VGFX_ASSERT(buff->type == GL_ELEMENT_ARRAY_BUFFER,
+              "Index buffer's type is wrong.");
+
+  glBindVertexArray(va->handle);
+  glBindBuffer(buff->type, buff->handle);
+
+  glBindVertexArray(0);
+  glBindBuffer(buff->type, 0);
 }
 
 usize _vgfx_gl_get_format_size(u32 format) {

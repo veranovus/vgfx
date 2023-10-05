@@ -10,8 +10,6 @@
 //
 // =============================================
 
-#define VGFX_GL_MAX_BUFFER 8
-
 #define VGFX_GL_MAX_ATTRIB 16
 
 #define VGFX_GL_INVALID_HANDLE 0
@@ -45,12 +43,6 @@ struct VGFX_GL_VertexLayout {
   VGFX_GL_VertexAttrib attribs[VGFX_GL_MAX_ATTRIB];
 };
 
-typedef struct VGFX_GL_VertexArrayDesc VGFX_GL_VertexArrayDesc;
-struct VGFX_GL_VertexArrayDesc {
-  VGFX_GL_Buffer index_buffer;
-  VGFX_GL_VertexLayout layouts[VGFX_GL_MAX_BUFFER];
-};
-
 typedef struct VGFX_GL_VertexArray VGFX_GL_VertexArray;
 struct VGFX_GL_VertexArray {
   u32 handle;
@@ -66,22 +58,17 @@ void vgfx_gl_buffer_data(VGFX_GL_Buffer *buff, usize size, void *data,
 void vgfx_gl_buffer_sub_data(VGFX_GL_Buffer *buff, usize offset, usize size,
                              void *data);
 
-VGFX_GL_VertexArray vgfx_gl_vertex_array_create(VGFX_GL_VertexArrayDesc *desc);
+VGFX_GL_VertexArray vgfx_gl_vertex_array_create();
 
 void vgfx_gl_vertex_array_delete(VGFX_GL_VertexArray *va);
 
 void vgfx_gl_vertex_array_layout(VGFX_GL_VertexArray *va,
                                  VGFX_GL_VertexLayout *layout);
 
-usize _vgfx_gl_get_format_size(u32 format);
+void vgfx_gl_vertex_array_index_buffer(VGFX_GL_VertexArray *va,
+                                       VGFX_GL_Buffer *buff);
 
-// =============================================
-//
-//
-// Rendering Pipeline
-//
-//
-// =============================================
+usize _vgfx_gl_get_format_size(u32 format);
 
 // =============================================
 //
@@ -90,3 +77,7 @@ usize _vgfx_gl_get_format_size(u32 format);
 //
 //
 // =============================================
+
+void vgfx_gl_bind_texture_handle(VGFX_AS_Asset *as, u32 slot);
+
+void vgfx_gl_bind_shader_program(VGFX_AS_Asset *as);

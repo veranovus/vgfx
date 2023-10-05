@@ -41,24 +41,31 @@ enum VGFX_AS_AssetType {
   VGFX_ASSET_TYPE_UNKNOWN,
   VGFX_ASSET_TYPE_TEXTURE,
   VGFX_ASSET_TYPE_FONT,
+  VGFX_ASSET_TYPE_SHADER,
   VGFX_ASSET_TYPE_LAST,
 };
 
 typedef struct VGFX_AS_AssetDesc VGFX_AS_AssetDesc;
 struct VGFX_AS_AssetDesc {
   VGFX_AS_AssetType type;
-  const char *path;
   union {
     // VGFX_ASSET_TYPE_TEXTURE
     struct {
+      const char* texture_path;
       u32 texture_wrap;
       u32 texture_filter;
     };
     // VGFX_ASSET_TYPE_FONT
     struct {
+      const char* font_path;
       u32 font_size;
       u32 font_filter;
       u32 font_range[2];
+    };
+    // VGFX_ASSET_TYPE_SHADER
+    struct {
+      const char *shader_vert_path;
+      const char *shader_frag_path;
     };
   };
 };
@@ -91,8 +98,6 @@ void _vgfx_as_validate_asset_path(const char *path);
 //
 // =============================================
 
-#define VGFX_AS_INVALID_TEXTURE_HANDLE 0
-
 typedef u32 VGFX_AS_TextureHandle;
 
 typedef struct VGFX_AS_Texture VGFX_AS_Texture;
@@ -118,10 +123,27 @@ struct VGFX_AS_Font {
   VSTD_Vector(_VGFX_AS_Glyph) glyphs;
 };
 
+typedef u32 VGFX_AS_ShaderHandle;
+
+typedef u32 VGFX_AS_ShaderProgramHandle;
+
+typedef struct VGFX_AS_Shader VGFX_AS_Shader;
+struct VGFX_AS_Shader {
+  u32 handle;
+};
+
 void *_vgfx_as_load_texture(VGFX_AS_AssetDesc *desc);
 
 void *_vgfx_as_load_font(VGFX_AS_AssetDesc *desc);
 
+void *_vgfx_as_load_shader(VGFX_AS_AssetDesc *desc);
+
 void _vgfx_as_free_texture(VGFX_AS_Texture *handle);
 
 void _vgfx_as_free_font(VGFX_AS_Font *handle);
+
+void _vgfx_as_free_shader(VGFX_AS_Shader *handle);
+
+u32 _vgfx_as_compile_shader(u32 type, const char** path);
+
+u32 _vgfx_as_compile_shader_program(VGFX_AS_ShaderHandle *vec, usize len);

@@ -1,4 +1,5 @@
 #include "gl.h"
+#include "asset.h"
 
 // =============================================
 //
@@ -193,29 +194,40 @@ void vgfx_gl_bind_texture_handle(VGFX_AS_Asset *as, u32 slot) {
   VGFX_ASSERT_NON_NULL(as);
   VGFX_ASSERT_NON_NULL(as->handle);
 
-  VGFX_AS_Texture *handle;
-  VGFX_ASSET_CAST(as, VGFX_ASSET_TYPE_TEXTURE, handle);
+  VGFX_AS_TextureHandle handle = VGFX_GL_INVALID_HANDLE;
 
-  VGFX_ASSERT(handle->handle, "Asset handle is invalid.");
+  switch (as->type) {
+  case VGFX_ASSET_TYPE_TEXTURE:
+    handle = ((VGFX_AS_Texture*) as->handle)->handle;
+    break;
+  case VGFX_ASSET_TYPE_FONT:
+    handle = ((VGFX_AS_Font*) as->handle)->handle;
+    break;
+  }
+
+  VGFX_ASSERT(handle, "Asset handle is invalid.");
 
   glActiveTexture(GL_TEXTURE0 + slot);
-  glBindTexture(GL_TEXTURE_2D, handle->handle);
+  glBindTexture(GL_TEXTURE_2D, handle);
 }
 
 void vgfx_gl_unbind_texture_handle(u32 slot) {
 
   glActiveTexture(GL_TEXTURE0 + slot);
-  glBindTexture(GL_TEXTURE_2D, VGFX_AS_INVALID_TEXTURE_HANDLE);
+  glBindTexture(GL_TEXTURE_2D, VGFX_GL_INVALID_HANDLE);
 }
 
 void vgfx_gl_bind_shader_program(VGFX_AS_Asset *as) {
   
   VGFX_UNUSED(as);
 
-  VGFX_ABORT("Unimplemented.");
+  VGFX_AS_Shader *handle;
+  VGFX_ASSET_CAST(as, VGFX_ASSET_TYPE_SHADER, handle);
+
+  glUseProgram(handle->handle);
 }
 
 void vgfx_gl_unbind_shader_program() {
 
-  VGFX_ABORT("Unimplemented.");
+  glUseProgram(VGFX_GL_INVALID_HANDLE);
 }

@@ -1,5 +1,5 @@
 #include "asset.h"
-#include "vstd/vstd.h"
+#include "gl.h"
 
 #include <freetype/freetype.h>
 #include <stb/stb_image.h>
@@ -30,6 +30,8 @@ VGFX_AS_AssetServer *vgfx_as_asset_server_new() {
 
 void vgfx_as_asset_server_free(VGFX_AS_AssetServer *as) {
 
+  VGFX_ASSERT_NON_NULL(as);
+
   // Free assets
   for (usize i = 0; i < as->assets.keys.len; ++i) {
     VSTD_Vector(VGFX_AS_Asset *) *vec =
@@ -56,6 +58,9 @@ void vgfx_as_asset_server_free(VGFX_AS_AssetServer *as) {
       case VGFX_ASSET_TYPE_FONT:
         _vgfx_as_free_font(asset->handle);
         break;
+      case VGFX_ASSET_TYPE_SHADER:
+        _vgfx_as_free_shader(asset->handle);
+        break;
       }
 
       // Free asset
@@ -69,10 +74,8 @@ void vgfx_as_asset_server_free(VGFX_AS_AssetServer *as) {
 
 VGFX_AS_Asset *vgfx_as_asset_server_load(VGFX_AS_AssetServer *as,
                                          VGFX_AS_AssetDesc *desc) {
+  VGFX_ASSERT_NON_NULL(as);
   VGFX_ASSERT_NON_NULL(desc);
-
-  // Validate asset path
-  _vgfx_as_validate_asset_path(desc->path);
 
   // Validate asset type
   VGFX_AS_AssetType type = desc->type;
@@ -92,6 +95,12 @@ VGFX_AS_Asset *vgfx_as_asset_server_load(VGFX_AS_AssetServer *as,
   case VGFX_ASSET_TYPE_FONT:
     handle = _vgfx_as_load_font(desc);
     break;
+  case VGFX_ASSET_TYPE_SHADER:
+    handle = _vgfx_as_load_shader(desc);
+    break;
+  default:
+    VGFX_ABORT("Load function for this type is missing.");
+    break;
   }
 
   // Create asset
@@ -102,7 +111,7 @@ VGFX_AS_Asset *vgfx_as_asset_server_load(VGFX_AS_AssetServer *as,
   };
 
   // Set asset handle
-  VSTD_Vector(VGFX_AS_Asset *) * vec;
+  VSTD_Vector(VGFX_AS_Asset *) *vec = NULL;
   vstd_map_get(VGFX_AS_AssetType, VSTD_Vector(VGFX_AS_Asset *), as->assets,
                type, vec);
 
@@ -132,6 +141,13 @@ void _vgfx_as_validate_asset_path(const char *path) {
 
 void *_vgfx_as_load_texture(VGFX_AS_AssetDesc *desc) {
 
+  VGFX_ASSERT_NON_NULL(desc);
+  VGFX_ASSERT_NON_ZERO(desc->texture_wrap);
+  VGFX_ASSERT_NON_ZERO(desc->texture_filter);
+
+  // Validate asset paths
+  _vgfx_as_validate_asset_path(desc->texture_path);
+
   // Create OpenGL texture
   VGFX_AS_TextureHandle th;
   glGenTextures(1, &th);
@@ -150,9 +166,9 @@ void *_vgfx_as_load_texture(VGFX_AS_AssetDesc *desc) {
 
   // Load and validate texture data
   i32 width, height, channel;
-  u8 *data = stbi_load(desc->path, &width, &height, &channel, 0);
+  u8 *data = stbi_load(desc->texture_path, &width, &height, &channel, 0);
 
-  VGFX_ASSERT(data, "Failed to load texture from, `%s`.", desc->path);
+  VGFX_ASSERT(data, "Failed to load texture from, `%s`.", desc->texture_path);
 
   // Validate format
   u32 format;
@@ -168,7 +184,7 @@ void *_vgfx_as_load_texture(VGFX_AS_AssetDesc *desc) {
     break;
   default:
     VGFX_ABORT("Encountered unknown format when creating texture, `%d`.",
-               desc->path);
+               desc->texture_path);
     break;
   }
 
@@ -193,12 +209,20 @@ void *_vgfx_as_load_texture(VGFX_AS_AssetDesc *desc) {
 
 void *_vgfx_as_load_font(VGFX_AS_AssetDesc *desc) {
 
+  VGFX_ASSERT_NON_NULL(desc);
+  VGFX_ASSERT_NON_ZERO(desc->font_size);
+  VGFX_ASSERT_NON_ZERO(desc->font_filter);
+
+  // Validate asset paths
+  _vgfx_as_validate_asset_path(desc->font_path);
+
+  // Setup Freetype
   FT_Library ft;
   VGFX_ASSERT(FT_Init_FreeType(&ft), "Freetype failed to initiazlize.");
 
   FT_Face face;
-  VGFX_ASSERT(!FT_New_Face(ft, desc->path, 0, &face),
-              "Failed to load font from, `%s`.", desc->path);
+  VGFX_ASSERT(!FT_New_Face(ft, desc->font_path, 0, &face),
+              "Failed to load font from, `%s`.", desc->font_path);
 
   VGFX_ASSERT(!FT_Set_Pixel_Sizes(face, 0, desc->font_size),
               "Failed to set font size to `%u` pixels.", desc->font_size);
@@ -290,7 +314,48 @@ void *_vgfx_as_load_font(VGFX_AS_AssetDesc *desc) {
   return font;
 }
 
+void *_vgfx_as_load_shader(VGFX_AS_AssetDesc *desc) {
+  
+  VGFX_ASSERT_NON_NULL(desc);
+
+  // Validate asset paths
+  _vgfx_as_validate_asset_path(desc->shader_vert_path);
+  _vgfx_as_validate_asset_path(desc->shader_frag_path);
+
+  // Compile shaders
+  VSTD_String vert_source = vstd_fs_read_file(desc->shader_vert_path);
+  VGFX_AS_ShaderHandle vs = _vgfx_as_compile_shader(
+      GL_VERTEX_SHADER, (const char**)&vert_source.ptr);
+  vstd_string_free(&vert_source);
+  
+  VSTD_String frag_source = vstd_fs_read_file(desc->shader_frag_path);
+  VGFX_AS_ShaderHandle fs = _vgfx_as_compile_shader(
+      GL_FRAGMENT_SHADER, (const char**)&frag_source.ptr);
+  vstd_string_free(&frag_source);
+
+  if (!(vs && fs)) {
+    VGFX_ABORT("Shader failed to compile.");
+  }
+
+  // Link shaders
+  VGFX_AS_ShaderHandle vec[2] = {vs, fs};
+  VGFX_AS_ShaderProgramHandle sp = _vgfx_as_compile_shader_program(vec, 2);
+
+  
+  if (!(vs && fs)) {
+    VGFX_ABORT("Shader Program failed to link.");
+  }
+
+  VGFX_AS_Shader *handle = (VGFX_AS_Shader*)malloc(sizeof(VGFX_AS_Shader));
+
+  handle->handle = sp;
+
+  return handle;
+}
+
 void _vgfx_as_free_texture(VGFX_AS_Texture *handle) {
+
+  VGFX_ASSERT_NON_NULL(handle);
 
   glDeleteTextures(1, &handle->handle);
 
@@ -299,9 +364,103 @@ void _vgfx_as_free_texture(VGFX_AS_Texture *handle) {
 
 void _vgfx_as_free_font(VGFX_AS_Font *handle) {
 
+  VGFX_ASSERT_NON_NULL(handle);
+
   glDeleteTextures(1, &handle->handle);
 
   vstd_vector_free(_VGFX_AS_Glyph, (&handle->glyphs));
 
   free(handle);
+}
+
+void _vgfx_as_free_shader(VGFX_AS_Shader *handle) {
+  
+  VGFX_ASSERT_NON_NULL(handle);
+
+  glDeleteProgram(handle->handle);
+
+  free(handle);
+}
+
+u32 _vgfx_as_compile_shader(u32 type, const char** source) {
+
+  VGFX_ASSERT_NON_NULL(source);
+
+  VGFX_AS_ShaderHandle handle = glCreateShader(type);
+
+  glShaderSource(handle, 1, source, NULL);
+  glCompileShader(handle);
+
+  int success;
+  char info_log[512];
+  glGetShaderiv(handle, GL_COMPILE_STATUS, &success);
+
+  if (!success) {
+    VSTD_String tmp;
+    switch (type) {
+    case GL_VERTEX_SHADER:
+      tmp = vstd_string_from(VSTD_STRINGIFY(GL_VERTEX_SHADER));
+      break;
+    // case GL_TESS_CONTROL_SHADER:
+    //   tmp = vstd_string_from(VSTD_STRINGIFY(GL_TESS_CONTROL_SHADER));
+    //   break;
+    // case GL_TESS_EVALUATION_SHADER:
+    //   tmp = vstd_string_from(VSTD_STRINGIFY(GL_TESS_EVALUATION_SHADER));
+    //   break;
+    case GL_GEOMETRY_SHADER:
+      tmp = vstd_string_from(VSTD_STRINGIFY(GL_GEOMETRY_SHADER));
+      break;
+    case GL_FRAGMENT_SHADER:
+      tmp = vstd_string_from(VSTD_STRINGIFY(GL_FRAGMENT_SHADER));
+      break;
+    // case GL_COMPUTE_SHADER:
+    //   tmp = vstd_string_from(VSTD_STRINGIFY(GL_COMPUTE_SHADER));
+    //   break;
+    default:
+      VGFX_ABORT("Failed to compile shader, unknown shader type `%d`.", type);
+      break;
+    }
+
+    // TODO: Switch to VGFX_DEBUG_ERROR
+    VGFX_DEBUG_WARN("Failed to compile `%s`:\n%s", tmp.ptr, info_log);
+
+    vstd_string_free(&tmp);
+    glDeleteShader(handle);
+
+    return VGFX_GL_INVALID_HANDLE;
+  }
+
+  return handle;
+}
+
+u32 _vgfx_as_compile_shader_program(VGFX_AS_ShaderHandle *vec, usize len) {
+  
+  VGFX_AS_ShaderProgramHandle handle = glCreateProgram();
+
+  for (usize i = 0; i < len; ++i) {
+    glAttachShader(handle, vec[i]);
+  }
+
+  glLinkProgram(handle);
+
+  for (usize i = 0; i < len; ++i) {
+    glDeleteShader(vec[i]);
+  }
+
+  int success;
+  char info_log[512];
+  glGetProgramiv(handle, GL_LINK_STATUS, &success);
+
+  if (!success) {
+    glGetProgramInfoLog(handle, 512, NULL, info_log);
+
+    // TODO: Switch to VGFX_DEBUG_ERROR
+    VGFX_DEBUG_WARN("Failed to link shader program:\n%s", info_log);
+
+    glDeleteProgram(handle);
+
+    return VGFX_GL_INVALID_HANDLE;
+  }
+
+  return handle;
 }

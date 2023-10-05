@@ -44,38 +44,19 @@ int main(i32 argc, char *argv[]) {
   // Load texture
   VGFX_AS_Asset *texture = vgfx_as_asset_server_load(
       asset_server, &(VGFX_AS_AssetDesc){
-                        .path = TEST_TEXTURE_PATH,
                         .type = VGFX_ASSET_TYPE_TEXTURE,
+                        .texture_path = TEST_TEXTURE_PATH,
                         .texture_filter = GL_NEAREST,
                         .texture_wrap = GL_REPEAT,
                     });
 
   // Base Shader program
-  VGFX_Shader base_shaders[2];
-
-  {
-    // Vertex shader
-    VSTD_String vertex_shader_source = vstd_fs_read_file(VERT_SHADER_PATH);
-
-    VGFX_Shader vertex_shader = vgfx_shader_new(
-        GL_VERTEX_SHADER, (const char **)&vertex_shader_source.ptr);
-
-    vstd_string_free(&vertex_shader_source);
-
-    base_shaders[0] = vertex_shader;
-
-    // Fragment shader
-    VSTD_String fragment_shader_source = vstd_fs_read_file(FRAG_SHADER_PATH);
-
-    VGFX_Shader fragment_shader = vgfx_shader_new(
-        GL_FRAGMENT_SHADER, (const char **)&fragment_shader_source.ptr);
-
-    vstd_string_free(&fragment_shader_source);
-
-    base_shaders[1] = fragment_shader;
-  }
-
-  VGFX_ShaderProgram base_program = vgfx_shader_program_new(base_shaders, 2);
+  VGFX_AS_Asset *program = vgfx_as_asset_server_load(
+      asset_server, &(VGFX_AS_AssetDesc){
+                        .type = VGFX_ASSET_TYPE_SHADER,
+                        .shader_vert_path = VERT_SHADER_PATH,
+                        .shader_frag_path = FRAG_SHADER_PATH,
+                    });
 
   // Setup camera
   s_camera = vgfx_camera_new(glm_rad(45.0f), WINDOW_WIDTH, WINDOW_HEIGHT, 0.0f,
@@ -98,7 +79,8 @@ int main(i32 argc, char *argv[]) {
   vgfx_gl_buffer_data(&ibuff, GL_STATIC_DRAW, sizeof(indices), indices);
 
   VGFX_GL_Buffer dbuff = vgfx_gl_buffer_create(GL_ARRAY_BUFFER);
-  vgfx_gl_buffer_data(&dbuff, GL_DYNAMIC_DRAW, sizeof(mat4) * MAX_INSTANCE, NULL);
+  vgfx_gl_buffer_data(&dbuff, GL_DYNAMIC_DRAW, sizeof(mat4) * MAX_INSTANCE,
+                      NULL);
 
   VGFX_GL_VertexArray va = vgfx_gl_vertex_array_create();
 
@@ -226,24 +208,29 @@ int main(i32 argc, char *argv[]) {
 
     vgfx_gl_buffer_sub_data(&dbuff, 0, sizeof(mat4) * instance_count, &buff[0]);
 
+    // Get from handle
+    VGFX_AS_Shader *shader;
+    VGFX_ASSET_CAST(program, VGFX_ASSET_TYPE_SHADER, shader);
+
     // Render the scene
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glUseProgram(base_program);
+    vgfx_gl_bind_shader_program(program);
 
-    vgfx_shader_program_uniform_f1(base_program, "u_time", (f32)time);
-    vgfx_shader_program_uniform_i1(base_program, "u_texture", 0);
+    vgfx_shader_program_uniform_f1(shader->handle, "u_time", (f32)time);
+    vgfx_shader_program_uniform_i1(shader->handle, "u_texture", 0);
 
     vgfx_gl_bind_texture_handle(texture, 0);
 
     glBindVertexArray(va.handle);
+
     glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0,
                             instance_count);
 
     glBindVertexArray(0);
     vgfx_gl_unbind_texture_handle(0);
-    glUseProgram(0);
+    vgfx_gl_unbind_shader_program();
 
     vgfx_os_window_swap_buffers(win);
     vgfx_os_poll_events();
@@ -261,7 +248,6 @@ int main(i32 argc, char *argv[]) {
 
   // Free resources
   // vgfx_texture_free(texture);
-  vgfx_shader_program_free(base_program);
   vgfx_camera_free(s_camera);
 
   // Free the vgfx

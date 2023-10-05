@@ -10,3 +10,5 @@ Awesome game that I'm currently working on it's written from scratch using only 
 - `v0.3.1`: Complete refactoring to whole gfx API.
 - `v0.3.1`; Implemented Core and OS modules.
 - `v0.3.1`; Implemented Asset module, and finished asset abstraction.
+- `v0.3.2`: Implemented GL module. 
+- `v0.3.2`: Implemented a new rendering api.

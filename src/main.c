@@ -91,46 +91,40 @@ int main(i32 argc, char *argv[]) {
 
   u32 indices[] = {0, 1, 3, 1, 2, 3};
 
-  VGFX_GL_Buffer vbuff = vgfx_gl_buffer_create(&(VGFX_GL_BufferDesc){
-      .type = GL_ARRAY_BUFFER,
-      .usage = GL_STATIC_DRAW,
-      .size = sizeof(vertices),
-      .data = vertices,
-  });
+  VGFX_GL_Buffer vbuff = vgfx_gl_buffer_create(GL_ARRAY_BUFFER);
+  vgfx_gl_buffer_data(&vbuff, GL_STATIC_DRAW, sizeof(vertices), vertices);
 
-  VGFX_GL_Buffer ibuff = vgfx_gl_buffer_create(&(VGFX_GL_BufferDesc){
-      .type = GL_ELEMENT_ARRAY_BUFFER,
-      .usage = GL_STATIC_DRAW,
-      .size = sizeof(indices),
-      .data = indices,
-  });
+  VGFX_GL_Buffer ibuff = vgfx_gl_buffer_create(GL_ELEMENT_ARRAY_BUFFER);
+  vgfx_gl_buffer_data(&ibuff, GL_STATIC_DRAW, sizeof(indices), indices);
 
-  VGFX_GL_Buffer dbuff = vgfx_gl_buffer_create(&(VGFX_GL_BufferDesc){
-      .type = GL_ARRAY_BUFFER,
-      .usage = GL_DYNAMIC_DRAW,
-      .size = sizeof(mat4) * MAX_INSTANCE,
-      .data = NULL,
-  });
+  VGFX_GL_Buffer dbuff = vgfx_gl_buffer_create(GL_ARRAY_BUFFER);
+  vgfx_gl_buffer_data(&dbuff, GL_DYNAMIC_DRAW, sizeof(mat4) * MAX_INSTANCE, NULL);
 
   VGFX_GL_VertexArray va = vgfx_gl_vertex_array_create();
 
-  vgfx_gl_vertex_array_layout(
-      &va, &(VGFX_GL_VertexLayout){.buff = vbuff,
-                                   .update = 0,
-                                   .attribs = {
-                                       [0] = {3, GL_FLOAT, GL_FALSE},
-                                       [1] = {2, GL_FLOAT, GL_FALSE},
-                                   }});
+  VGFX_GL_VertexAttribLayout layout0 = {
+      .buffer = vbuff,
+      .update_freq = 0,
+      .attribs =
+          {
+              {3, GL_FLOAT, GL_FALSE},
+              {2, GL_FLOAT, GL_FALSE},
+          },
+  };
+  vgfx_gl_vertex_array_layout(&va, &layout0);
 
-  vgfx_gl_vertex_array_layout(
-      &va, &(VGFX_GL_VertexLayout){.buff = dbuff,
-                                   .update = 1,
-                                   .attribs = {
-                                       [2] = {4, GL_FLOAT, GL_FALSE},
-                                       [3] = {4, GL_FLOAT, GL_FALSE},
-                                       [4] = {4, GL_FLOAT, GL_FALSE},
-                                       [5] = {4, GL_FLOAT, GL_FALSE},
-                                   }});
+  VGFX_GL_VertexAttribLayout layout1 = {
+      .buffer = dbuff,
+      .update_freq = 1,
+      .attribs =
+          {
+              {4, GL_FLOAT, GL_FALSE},
+              {4, GL_FLOAT, GL_FALSE},
+              {4, GL_FLOAT, GL_FALSE},
+              {4, GL_FLOAT, GL_FALSE},
+          },
+  };
+  vgfx_gl_vertex_array_layout(&va, &layout1);
 
   vgfx_gl_vertex_array_index_buffer(&va, &ibuff);
 
@@ -232,10 +226,6 @@ int main(i32 argc, char *argv[]) {
 
     vgfx_gl_buffer_sub_data(&dbuff, 0, sizeof(mat4) * instance_count, &buff[0]);
 
-    // Get texture
-    VGFX_AS_Texture *texture_handle = NULL;
-    VGFX_ASSET_DEBUG_CAST(texture, VGFX_ASSET_TYPE_TEXTURE, texture_handle);
-
     // Render the scene
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -245,16 +235,14 @@ int main(i32 argc, char *argv[]) {
     vgfx_shader_program_uniform_f1(base_program, "u_time", (f32)time);
     vgfx_shader_program_uniform_i1(base_program, "u_texture", 0);
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture_handle->handle);
+    vgfx_gl_bind_texture_handle(texture, 0);
 
     glBindVertexArray(va.handle);
     glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0,
                             instance_count);
 
     glBindVertexArray(0);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    vgfx_gl_unbind_texture_handle(0);
     glUseProgram(0);
 
     vgfx_os_window_swap_buffers(win);

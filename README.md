@@ -2,7 +2,7 @@
 
 Awesome game that I'm currently working on it's written from scratch using only C99 and OpenGL.
 
-> Version 0.3.3
+> Version 0.3.4
 
 ## Changelog
 

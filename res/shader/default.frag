@@ -17,16 +17,9 @@ void main() {
   
   vec4 tex_color = texture(u_texture[index], v_tex);
     
-  if (shader == 0) {
-    if (tex_color.a == 0) {
-      discard;
-    }
-    
-    frag_color = tex_color * v_col;
-  } else {
-    float aaf = fwidth(tex_color.r);
-    float alpha = smoothstep(0.5 - aaf, 0.5 + aaf, tex_color.r);
-
-    frag_color = vec4(v_col.rgb, alpha) * v_col;
+  if (tex_color.a == 0) {
+    discard;
   }
+  
+  frag_color = tex_color * v_col;
 }

@@ -1,6 +1,6 @@
 # Project configuration
 cmake_minimum_required(VERSION 3.26)
-project(cgame VERSION 0.3.3 LANGUAGES C)
+project(cgame VERSION 0.3.4 LANGUAGES C)
 
 # Project settings
 set(TARGET_NAME cgame)

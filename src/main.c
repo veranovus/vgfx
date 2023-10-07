@@ -84,6 +84,13 @@ int main(i32 argc, char *argv[]) {
                         .texture_wrap = GL_REPEAT,
                     });
 
+  // Load hader program
+  VGFX_AS_Asset *shader = vgfx_as_asset_server_load(asset_server, &(VGFX_AS_AssetDesc) {
+    .type = VGFX_ASSET_TYPE_SHADER,
+    .shader_vert_path = VERT_SHADER_PATH,
+    .shader_frag_path = FRAG_SHADER_PATH,
+  });
+
   // Create pipeline
   VGFX_RD_Pipeline *pipeline = vgfx_rd_pipeline_new(asset_server);
 
@@ -181,13 +188,13 @@ int main(i32 argc, char *argv[]) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Render the scene
-    vgfx_rd_pipeline_begin(pipeline);
+    vgfx_rd_pipeline_begin(pipeline, shader);
 
     vgfx_gl_uniform_fv("u_time", 1, (f32[1]){(f32)time});
     vgfx_gl_uniform_mat4fv("u_vpm", 1, false, &vpm[0][0]);
 
     vstd_vector_iter(Object, objs, {
-      vgfx_rd_send_text(texture, _$iter->pos, _$iter->scl, _$iter->col);
+      vgfx_rd_send_texture(texture, _$iter->pos, _$iter->scl, _$iter->col);
     });
 
     vgfx_rd_pipeline_flush();

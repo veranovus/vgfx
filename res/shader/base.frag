@@ -1,18 +1,25 @@
 #version 330 core
 out vec4 frag_color;
 
-// in vec3 v_col;
+in float v_texture;
 in vec2 v_tex;
+in vec4 v_col;
 
 uniform float u_time;
-uniform sampler2D u_texture;
+uniform sampler2D u_texture[16];
 
 void main() {
-  float diff = (sin(u_time) + 1.0) / 2.0;
-  vec4 tex_color = texture(u_texture, v_tex);
+  float temp = u_time;
 
-  if (tex_color.a == 0) {
+  int index = int(v_texture);
+
+  if (index < 0) {
+    frag_color = v_col;
+  } else {
+    frag_color = texture(u_texture[index], v_tex) * v_col;
+  }
+
+  if (frag_color.a == 0) {
     discard;
   }
-  frag_color = tex_color * diff;
 }

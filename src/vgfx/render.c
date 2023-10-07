@@ -1,5 +1,4 @@
 #include "render.h"
-#include "asset.h"
 
 const char *VGFX_RD_BASE_VERT_PATH = "res/shader/default.vert";
 
@@ -23,15 +22,12 @@ VGFX_RD_Pipeline *vgfx_rd_pipeline_new(VGFX_AS_AssetServer *as) {
 
   VGFX_RD_Pipeline *pipeline = (VGFX_RD_Pipeline*) malloc(sizeof(VGFX_RD_Pipeline));
 
-  pipeline->shader = vgfx_as_asset_server_load(as, &(VGFX_AS_AssetDesc) {
-    .type = VGFX_ASSET_TYPE_SHADER,
-    .shader_vert_path = VGFX_RD_BASE_VERT_PATH,
-    .shader_frag_path = VGFX_RD_BASE_FRAG_PATH,
-  });
-
   pipeline->max_vertex_count = VGFX_RD_MAX_VERTEX_COUNT;
   pipeline->crn_vertex_count = 0;
   pipeline->crn_texture = 0;
+
+  pipeline->_cache.shader = NULL;
+  pipeline->_cache.texture = VGFX_GL_INVALID_HANDLE;
 
   // OpenGL buffers
   pipeline->vb = vgfx_gl_buffer_create(GL_ARRAY_BUFFER);
@@ -48,7 +44,6 @@ VGFX_RD_Pipeline *vgfx_rd_pipeline_new(VGFX_AS_AssetServer *as) {
     .buffer = pipeline->vb,
     .update_freq = 0,
     .attribs = {
-      {1, GL_FLOAT, GL_FALSE},
       {1, GL_FLOAT, GL_FALSE},
       {3, GL_FLOAT, GL_FALSE},
       {2, GL_FLOAT, GL_FALSE},
@@ -77,16 +72,20 @@ void vgfx_rd_piepline_free(VGFX_RD_Pipeline *pipeline) {
   free(pipeline);
 }
 
-void vgfx_rd_pipeline_begin(VGFX_RD_Pipeline *pipeline) {
+void vgfx_rd_pipeline_begin(VGFX_RD_Pipeline *pipeline, VGFX_AS_Asset *shader) {
 
   VGFX_ASSERT_NON_NULL(pipeline);
 
   pipeline->crn_vertex_count = 0;
-
   pipeline->crn_texture = 0;
 
+  if (shader) {
+    pipeline->_cache.shader = shader;
+  }
+  pipeline->_cache.texture = VGFX_GL_INVALID_HANDLE;
+
   VGFX_AS_Shader *handle;
-  VGFX_ASSET_CAST(pipeline->shader, VGFX_ASSET_TYPE_SHADER, handle);
+  VGFX_ASSET_CAST(pipeline->_cache.shader, VGFX_ASSET_TYPE_SHADER, handle);
 
   vgfx_gl_bind_shader_program(handle->handle);
 
@@ -135,19 +134,18 @@ void vgfx_rd_pipeline_flush() {
 //
 // =============================================
 
-void vgfx_rd_send_vert(f32 shader, f32 texture, vec3 pos, vec2 tex, vec4 col) {
+void vgfx_rd_send_vert(f32 texture, vec3 pos, vec2 tex, vec4 col) {
 
   if (s_rd_bound_pipeline->crn_vertex_count == s_rd_bound_pipeline->max_vertex_count) {
     VGFX_RD_Pipeline *tmp = s_rd_bound_pipeline;
 
     vgfx_rd_pipeline_flush();
-    vgfx_rd_pipeline_begin(tmp);
+    vgfx_rd_pipeline_begin(tmp, NULL);
   }
   
   VGFX_RD_Vertex *v = &vstd_vector_get(VGFX_RD_Vertex, 
         s_rd_bound_pipeline->cpu_vb, s_rd_bound_pipeline->crn_vertex_count);
 
-  v->shader = shader;
   v->texture = texture;
 
   v->pos[0] = pos[0];
@@ -165,31 +163,37 @@ void vgfx_rd_send_vert(f32 shader, f32 texture, vec3 pos, vec2 tex, vec4 col) {
   s_rd_bound_pipeline->crn_vertex_count += 1;
 }
 
-void vgfx_rd_send_quad(f32 shader, f32 texture, vec3 pos, vec2 scl, vec4 col) {
+void vgfx_rd_send_quad(f32 texture, vec3 pos, vec2 scl, vec4 col) {
   
   // First triangle
-  vgfx_rd_send_vert(shader, texture, (vec3){pos[0], pos[1], pos[2]}, (vec2){0.0f, 1.0f}, col);
+  vgfx_rd_send_vert(texture, (vec3){pos[0], pos[1], pos[2]}, (vec2){0.0f, 1.0f}, col);
 
-  vgfx_rd_send_vert(shader, texture, (vec3){pos[0] + scl[0], pos[1], pos[2]}, (vec2){1.0f, 1.0f}, col);
+  vgfx_rd_send_vert(texture, (vec3){pos[0] + scl[0], pos[1], pos[2]}, (vec2){1.0f, 1.0f}, col);
 
-  vgfx_rd_send_vert(shader, texture, (vec3){pos[0], pos[1] + scl[1], pos[2]}, (vec2){0.0f, 0.0f}, col);
+  vgfx_rd_send_vert(texture, (vec3){pos[0], pos[1] + scl[1], pos[2]}, (vec2){0.0f, 0.0f}, col);
 
   // Second triangle
-  vgfx_rd_send_vert(shader, texture, (vec3){pos[0] + scl[0], pos[1], pos[2]}, (vec2){1.0f, 1.0f}, col);
+  vgfx_rd_send_vert(texture, (vec3){pos[0] + scl[0], pos[1], pos[2]}, (vec2){1.0f, 1.0f}, col);
 
-  vgfx_rd_send_vert(shader, texture, (vec3){pos[0], pos[1] + scl[1], pos[2]}, (vec2){0.0f, 0.0f}, col);
+  vgfx_rd_send_vert(texture, (vec3){pos[0], pos[1] + scl[1], pos[2]}, (vec2){0.0f, 0.0f}, col);
 
-  vgfx_rd_send_vert(shader, texture, (vec3){pos[0] + scl[0], pos[1] + scl[1], pos[2]}, (vec2){1.0f, 0.0f}, col);
+  vgfx_rd_send_vert(texture, (vec3){pos[0] + scl[0], pos[1] + scl[1], pos[2]}, (vec2){1.0f, 0.0f}, col);
 }
 
-void vgfx_rd_send_text(VGFX_AS_Asset *text, vec3 pos, vec2 scl, vec4 col) {
+void vgfx_rd_send_texture(VGFX_AS_Asset *texture, vec3 pos, vec2 scl, vec4 col) {
 
-  VGFX_DEBUG_ASSERT(text, "Handle is NULL.");
+  VGFX_DEBUG_ASSERT(texture, "Handle is NULL.");
 
   VGFX_AS_Texture* handle;
-  VGFX_ASSET_DEBUG_CAST(text, VGFX_ASSET_TYPE_TEXTURE, handle);
+  VGFX_ASSET_DEBUG_CAST(texture, VGFX_ASSET_TYPE_TEXTURE, handle);
 
   isize slot = -1;
+
+  if (handle->handle == s_rd_bound_pipeline->_cache.texture) {
+    slot = s_rd_bound_pipeline->crn_texture;    
+    goto render_quad;
+  }
+
   for (usize i = 0; i < VGFX_RD_MAX_BOUND_TEXTURE; ++i) {
     if (handle->handle != s_rd_bound_pipeline->textures[i]) {
       continue;
@@ -201,17 +205,20 @@ void vgfx_rd_send_text(VGFX_AS_Asset *text, vec3 pos, vec2 scl, vec4 col) {
 
   if (slot < 0) {
     if (s_rd_bound_pipeline->crn_texture == VGFX_RD_MAX_BOUND_TEXTURE) {
-      VGFX_RD_Pipeline *pipeline = s_rd_bound_pipeline;
+      VGFX_RD_Pipeline *tmp = s_rd_bound_pipeline;
 
       vgfx_rd_pipeline_flush();
-      vgfx_rd_pipeline_begin(pipeline);  
+      vgfx_rd_pipeline_begin(tmp, NULL);  
     }
     
     slot = s_rd_bound_pipeline->crn_texture;
 
+    s_rd_bound_pipeline->_cache.texture = handle->handle;
     s_rd_bound_pipeline->textures[slot] = handle->handle;
+
     s_rd_bound_pipeline->crn_texture += 1;
   }
 
-  vgfx_rd_send_quad(0, slot, pos, scl, col);
+render_quad:
+  vgfx_rd_send_quad(slot, pos, scl, col);
 }

@@ -1,183 +1,151 @@
 #include "render.h"
 
+const char *VGFX_RD_BASE_VERT_PATH = "res/shader/default.vert";
+
+const char *VGFX_RD_BASE_FRAG_PATH = "res/shader/default.frag";
+
+const usize VGFX_RD_MAX_RENDER_COUNT = 10000;
+
+static VGFX_RD_Pipeline *s_rd_bound_pipeline;
+
+// =============================================
+//
+//
 // Pipeline
-// - Program       M
-// - VAO           M
-// - Index Buffer  ?
-// - Stencil       ?
-// - Depth         ?
-// - Blend         ?
-// - Cull Face     ?
+//
+//
+// =============================================
 
-/*****************************************************************************
- * - VGFX VertexArray
- * */
+VGFX_RD_Pipeline *vgfx_rd_pipeline_new(VGFX_AS_AssetServer *as) {
 
-VGFX_VertexArray vgfx_vertex_array_new(VGFX_VertexArrayDesc *desc) {
+  VGFX_ASSERT_NON_NULL(as);
 
-  VGFX_VertexArray handle;
-  glGenVertexArrays(1, &handle);
+  VGFX_RD_Pipeline *pipeline = (VGFX_RD_Pipeline*) malloc(sizeof(VGFX_RD_Pipeline));
 
-  if (!desc) {
-    return handle;
-  }
+  pipeline->shader = vgfx_as_asset_server_load(as, &(VGFX_AS_AssetDesc) {
+    .shader_vert_path = VGFX_RD_BASE_VERT_PATH,
+    .shader_frag_path = VGFX_RD_BASE_FRAG_PATH,
+  });
 
-  // Set vertex layouts
-  for (i32 i = 0; i < VGFX_MAX_BUFFER; ++i) {
-    VGFX_VertexLayout *layout = &desc->layouts[i];
+  pipeline->max_render_count = VGFX_RD_MAX_RENDER_COUNT * 6;
+  pipeline->crn_render_count = 0;
 
-    vgfx_vertex_array_layout(handle, layout);
-  }
+  // OpenGL buffers
+  pipeline->vb = vgfx_gl_buffer_create(GL_ARRAY_BUFFER);
+  vgfx_gl_buffer_data(&pipeline->vb, GL_DYNAMIC_DRAW, 
+                      sizeof(VGFX_RD_Vertex) * pipeline->max_render_count, NULL);
 
-  // Set index buffer
-  if (desc->index_buffer) {
-    vgfx_vertex_array_index_buffer(handle, desc->index_buffer);
-  }
+  pipeline->va = vgfx_gl_vertex_array_create();
 
-  return handle;
+  VGFX_GL_VertexAttribLayout layout = {
+    .buffer = pipeline->vb,
+    .update_freq = 0,
+    .attribs = {
+      {3, GL_FLOAT, GL_FALSE},
+      {4, GL_FLOAT, GL_FALSE},
+      {1, GL_FLOAT, GL_FALSE},
+    },
+  };
+  vgfx_gl_vertex_array_layout(&pipeline->va, &layout);
+
+  // CPU buffer
+  pipeline->cpu_vb = vstd_vector_with_capacity(
+        VGFX_RD_Vertex, pipeline->max_render_count);
+  
+  // Textures
+  pipeline->crn_texture = 0;
+
+  return pipeline;
 }
 
-void vgfx_vertex_array_free(VGFX_VertexArray va) {
+void vgfx_rd_piepline_delete(VGFX_RD_Pipeline *pipeline) {
 
-  glDeleteVertexArrays(1, &va);
+  VGFX_ASSERT_NON_NULL(pipeline);
+
+  vgfx_gl_buffer_delete(&pipeline->vb);
+
+  vgfx_gl_vertex_array_delete(&pipeline->va);
+
+  vstd_vector_free(VGFX_RD_Vertex, (&pipeline->cpu_vb));
+
+  free(pipeline);
 }
 
-void vgfx_vertex_array_layout(VGFX_VertexArray va, VGFX_VertexLayout *layout) {
+void vgfx_rd_pipeline_begin(VGFX_RD_Pipeline *pipeline) {
 
-  // Skip invalid layout
-  if (!layout->buffer) {
-    return;
-  }
+  VGFX_ASSERT_NON_NULL(pipeline);
 
-  // Calculate stride and type_size
-  u32 format = 0;
-  usize tsize = 0;
-  usize stride = 0;
+  pipeline->crn_render_count = 0;
 
-  for (i32 i = 0; i < VGFX_MAX_VERTEX_ATTRIB; ++i) {
-    VGFX_VertexAttrib *attrib = &layout->attrib[i];
+  pipeline->crn_texture = 0;
 
-    // Skip the attribute if its empty
-    if (!attrib->format) {
-      continue;
-    }
+  VGFX_AS_Shader *handle;
+  VGFX_ASSET_CAST(pipeline->shader, VGFX_ASSET_TYPE_SHADER, handle);
 
-    if (!format) {
-      tsize = vgfx_get_gl_format_size(attrib->format);
-      format = attrib->format;
-    }
+  vgfx_gl_bind_shader_program(handle->handle);
 
-    // Validate vertex attribute format
-    if (format != attrib->format) {
-      fprintf(
-          stderr,
-          "Format missmatch detected when setting the VGFX_VertexLayout.\n");
-      fprintf(stderr, "Expected `%u`, but found `%u`.\n", format,
-              attrib->format);
-      abort();
-    }
+  s_rd_bound_pipeline = pipeline;
+}
 
-    // Calculate the stride
-    stride += attrib->size * tsize;
-  }
+void vgfx_rd_pipeline_flush() {
 
-  // Set the vertex attributes
-  glBindVertexArray(va);
-  glBindBuffer(GL_ARRAY_BUFFER, layout->buffer);
+  vgfx_gl_buffer_sub_data(
+    &s_rd_bound_pipeline->vb, 
+    0, 
+    s_rd_bound_pipeline->crn_render_count * sizeof(VGFX_RD_Vertex), 
+    s_rd_bound_pipeline->cpu_vb.ptr
+  );
 
-  usize offset = 0;
+  glBindVertexArray(s_rd_bound_pipeline->va.handle);
 
-  for (i32 i = 0; i < VGFX_MAX_VERTEX_ATTRIB; ++i) {
-    VGFX_VertexAttrib *attrib = &layout->attrib[i];
-
-    // Skip the attribute if its empty
-    if (!attrib->format) {
-      continue;
-    }
-
-    // Set the attribute and enable it
-    glVertexAttribPointer(i, attrib->size, attrib->format, attrib->normalize,
-                          stride, (void *)offset);
-    glEnableVertexAttribArray(i);
-    glVertexAttribDivisor(i, layout->update);
-
-    // Calculate the new offset for next attribute
-    offset += tsize * attrib->size;
-  }
+  glDrawArrays(GL_TRIANGLES, 0, s_rd_bound_pipeline->crn_render_count);
 
   glBindVertexArray(0);
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+  vgfx_gl_unbind_shader_program();
+
+  s_rd_bound_pipeline = NULL;
 }
 
-void vgfx_vertex_array_index_buffer(VGFX_VertexArray va, VGFX_Buffer buff) {
+// =============================================
+//
+//
+// Render
+//
+//
+// =============================================
 
-  glBindVertexArray(va);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buff);
+void vgfx_rd_send_vert(f32 shader, f32 pos[3], f32 col[4]) {
+  VGFX_RD_Vertex *v = &vstd_vector_get(VGFX_RD_Vertex, 
+        s_rd_bound_pipeline->cpu_vb, s_rd_bound_pipeline->crn_render_count);
 
-  glBindVertexArray(0);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+  v->shader = shader;
+
+  v->pos[0] = pos[0];
+  v->pos[1] = pos[1];
+  v->pos[2] = pos[2];
+
+  v->col[0] = col[0];
+  v->col[1] = col[1];
+  v->col[2] = col[2];
+  v->col[3] = col[3];
+
+  s_rd_bound_pipeline->crn_render_count += 1;
 }
 
-/*****************************************************************************
- * - VGFX Buffer
- * */
+void vgfx_rd_send_quad(f32 shader, f32 pos[3], f32 scl[2], f32 col[4]) {
+  
+  // First triangle
+  vgfx_rd_send_vert(shader, (vec3){pos[0], pos[1], pos[2]},  col);
 
-VGFX_Buffer vgfx_buffer_new(VGFX_BufferDesc *desc) {
+  vgfx_rd_send_vert(shader, (vec3){pos[0] + scl[0], pos[1], pos[2]},  col);
 
-  VGFX_Buffer handle;
-  glGenBuffers(1, &handle);
+  vgfx_rd_send_vert(shader, (vec3){pos[0], pos[1] + scl[1], pos[2]},  col);
 
-  vgfx_buffer_data(handle, desc->type, desc->size, desc->data, desc->usage);
+  // Second triangle
+  vgfx_rd_send_vert(shader, (vec3){pos[0] + scl[0], pos[1], pos[2]},  col);
 
-  return handle;
-}
+  vgfx_rd_send_vert(shader, (vec3){pos[0], pos[1] + scl[1], pos[2]},  col);
 
-void vgfx_buffer_free(VGFX_Buffer buff) { glDeleteBuffers(1, &buff); }
-
-void vgfx_buffer_data(VGFX_Buffer buff, u32 type, usize size, const void *data,
-                      u32 usage) {
-
-  glBindBuffer(type, buff);
-  glBufferData(type, size, data, usage);
-  glBindBuffer(type, 0);
-}
-
-void vgfx_buffer_sub_data(VGFX_Buffer buff, u32 type, usize offset, usize size,
-                          const void *data) {
-
-  glBindBuffer(type, buff);
-  glBufferSubData(type, offset, size, data);
-  glBindBuffer(type, 0);
-}
-
-/*****************************************************************************
- * - Helper Functions
- * */
-
-usize vgfx_get_gl_format_size(u32 type) {
-  switch (type) {
-  case GL_BYTE:
-    return sizeof(i8);
-  case GL_UNSIGNED_BYTE:
-    return sizeof(u8);
-  case GL_SHORT:
-    return sizeof(i16);
-  case GL_UNSIGNED_SHORT:
-    return sizeof(u16);
-  case GL_INT:
-    return sizeof(i32);
-  case GL_UNSIGNED_INT:
-    return sizeof(u32);
-  case GL_HALF_FLOAT:
-    return sizeof(GLhalf);
-  case GL_FLOAT:
-    return sizeof(f32);
-  case GL_DOUBLE:
-    return sizeof(f64);
-  }
-
-  fprintf(stderr,
-          "Encountered unsupported enum in vgfx_get_gl_type_size, `%u`\n",
-          type);
-  abort();
+  vgfx_rd_send_vert(shader, (vec3){pos[0] + scl[0], pos[1] + scl[1], pos[2]},  col);
 }

@@ -37,15 +37,11 @@ set(SOURCE_FILES
         src/vgfx/gl.c
         src/vgfx/asset.h
         src/vgfx/asset.c
-        # src/vgfx/window.h
-        # src/vgfx/window.c
         src/vgfx/input.h
-        src/vgfx/camera.h
-        src/vgfx/camera.c
-        src/vgfx/shader.h
-        src/vgfx/shader.c
         src/vgfx/render.h
         src/vgfx/render.c
+        src/vgfx/camera.h
+        src/vgfx/camera.c
 
         # vgfx/util
         # TODO: Enable it after refactoring

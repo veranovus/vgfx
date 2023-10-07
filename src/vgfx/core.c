@@ -1,5 +1,4 @@
 #include "core.h"
-#include "window.h"
 
 #define B_STACKTRACE_IMPL
 #include <b_stacktrace.h>

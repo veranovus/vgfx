@@ -1,76 +1,54 @@
 #pragma once
 
 #include "core.h"
-#include "shader.h"
+#include "asset.h"
+#include "gl.h"
 
-/*****************************************************************************
- * - Types
- * */
+// =============================================
+//
+//
+// Pipeline
+//
+//
+// =============================================
 
-// VGFX Buffer
+#define VGFX_RD_MAX_BOUND_TEXTURE 16
 
-typedef struct VGFX_BufferDesc {
-  u32 type;
-  u32 usage;
-  usize size;
-  void *data;
-} VGFX_BufferDesc;
+typedef struct VGFX_RD_Pipeline VGFX_RD_Pipeline;
+struct VGFX_RD_Pipeline {
+  VGFX_AS_Asset *shader;
+  VGFX_GL_Buffer vb;
+  VGFX_GL_VertexArray va;
+  usize max_render_count;
+  usize crn_render_count;
+  VSTD_Vector(VGFX_RD_Vertex) cpu_vb;
+  usize crn_texture;
+  VGFX_AS_TextureHandle textures[VGFX_RD_MAX_BOUND_TEXTURE];
+};
 
-typedef u32 VGFX_Buffer;
+typedef struct VGFX_RD_Vertex VGFX_RD_Vertex;
+struct VGFX_RD_Vertex {
+  f32 shader;
+  f32 pos[3];
+  f32 col[4];
+};
 
-// VGFX VertexArray
+VGFX_RD_Pipeline *vgfx_rd_pipeline_new(VGFX_AS_AssetServer *as);
 
-#define VGFX_MAX_VERTEX_ATTRIB 16
+void vgfx_rd_piepline_free(VGFX_RD_Pipeline *pipeline);
 
-#define VGFX_MAX_BUFFER 8
+void vgfx_rd_pipeline_begin(VGFX_RD_Pipeline *pipeline);
 
-typedef struct VGFX_VertexAttrib {
-  u32 size;
-  u32 format;
-  u32 normalize;
-} VGFX_VertexAttrib;
+void vgfx_rd_pipeline_flush();
 
-typedef struct VGFX_VertexLayout {
-  VGFX_Buffer buffer;
-  u32 update;
-  VGFX_VertexAttrib attrib[VGFX_MAX_VERTEX_ATTRIB];
-} VGFX_VertexLayout;
+// =============================================
+//
+//
+// Render
+//
+//
+// =============================================
 
-typedef struct VGFX_VertexArrayDesc {
-  VGFX_Buffer index_buffer;
-  VGFX_VertexLayout layouts[VGFX_MAX_BUFFER];
-} VGFX_VertexArrayDesc;
+void vgfx_rd_send_vert(f32 shader, f32 pos[3], f32 col[4]);
 
-typedef u32 VGFX_VertexArray;
-
-/*****************************************************************************
- * - VGFX Pipeline
- * */
-
-VGFX_VertexArray vgfx_vertex_array_new(VGFX_VertexArrayDesc *desc);
-
-void vgfx_vertex_array_free(VGFX_VertexArray va);
-
-void vgfx_vertex_array_layout(VGFX_VertexArray va, VGFX_VertexLayout *layout);
-
-void vgfx_vertex_array_index_buffer(VGFX_VertexArray va, VGFX_Buffer buff);
-
-/*****************************************************************************
- * - VGFX Buffer
- * */
-
-VGFX_Buffer vgfx_buffer_new(VGFX_BufferDesc *buffer_desc);
-
-void vgfx_buffer_free(VGFX_Buffer buff);
-
-void vgfx_buffer_data(VGFX_Buffer buff, u32 type, usize size, const void *data,
-                      u32 usage);
-
-void vgfx_buffer_sub_data(VGFX_Buffer buff, u32 type, usize offset, usize size,
-                          const void *data);
-
-/*****************************************************************************
- * - Helper Functions
- * */
-
-usize vgfx_get_gl_format_size(u32 type);
+void vgfx_rd_send_quad(f32 shader, f32 pos[3], f32 scl[2], f32 col[4]);

@@ -1,6 +1,8 @@
 #include "gl.h"
 #include "asset.h"
 
+static VGFX_AS_ShaderProgramHandle s_gl_bound_shader;
+
 // =============================================
 //
 //
@@ -189,23 +191,9 @@ usize _vgfx_gl_get_format_size(u32 format) {
 //
 // =============================================
 
-void vgfx_gl_bind_texture_handle(VGFX_AS_Asset *as, u32 slot) {
+void vgfx_gl_bind_texture_handle(VGFX_AS_TextureHandle handle, u32 slot) {
   
-  VGFX_ASSERT_NON_NULL(as);
-  VGFX_ASSERT_NON_NULL(as->handle);
-
-  VGFX_AS_TextureHandle handle = VGFX_GL_INVALID_HANDLE;
-
-  switch (as->type) {
-  case VGFX_ASSET_TYPE_TEXTURE:
-    handle = ((VGFX_AS_Texture*) as->handle)->handle;
-    break;
-  case VGFX_ASSET_TYPE_FONT:
-    handle = ((VGFX_AS_Font*) as->handle)->handle;
-    break;
-  }
-
-  VGFX_ASSERT(handle, "Asset handle is invalid.");
+  VGFX_ASSERT(handle, "Invalid handle.");
 
   glActiveTexture(GL_TEXTURE0 + slot);
   glBindTexture(GL_TEXTURE_2D, handle);
@@ -217,17 +205,184 @@ void vgfx_gl_unbind_texture_handle(u32 slot) {
   glBindTexture(GL_TEXTURE_2D, VGFX_GL_INVALID_HANDLE);
 }
 
-void vgfx_gl_bind_shader_program(VGFX_AS_Asset *as) {
+void vgfx_gl_bind_shader_program(VGFX_AS_ShaderProgramHandle handle) {
   
-  VGFX_UNUSED(as);
+  VGFX_ASSERT(handle, "Invalid handle.");
 
-  VGFX_AS_Shader *handle;
-  VGFX_ASSET_CAST(as, VGFX_ASSET_TYPE_SHADER, handle);
+  s_gl_bound_shader = handle;
 
-  glUseProgram(handle->handle);
+  glUseProgram(handle);
 }
 
 void vgfx_gl_unbind_shader_program() {
 
+  s_gl_bound_shader = VGFX_GL_INVALID_HANDLE;
+
   glUseProgram(VGFX_GL_INVALID_HANDLE);
 }
+
+// =============================================
+//
+//
+// Uniforms
+//
+//
+// =============================================
+
+void vgfx_gl_uniform_fv(const char *name, usize count, const f32 *v) {
+
+  i32 location = glGetUniformLocation(s_gl_bound_shader, name);
+
+  VGFX_GL_DEBUG_UNIFORM_WARNING(location, name);
+
+  switch (count) {
+  case 1:
+    glUniform1fv(location, count, v);
+    break;
+  case 2:
+    glUniform2fv(location, count, v);
+    break;
+  case 3:
+    glUniform3fv(location, count, v);
+    break;
+  case 4:
+    glUniform4fv(location, count, v);
+    break;
+  default:
+    VGFX_ABORT("Unsupported uniform count, `%lu`.", count);
+    break;
+  }
+}
+
+void vgfx_gl_uniform_iv(const char* name, usize count, const i32 *v) {
+  
+  i32 location = glGetUniformLocation(s_gl_bound_shader, name);
+
+  VGFX_GL_DEBUG_UNIFORM_WARNING(location, name);
+
+  switch (count) {
+  case 1:
+    glUniform1iv(location, count, v);
+    break;
+  case 2:
+    glUniform2iv(location, count, v);
+    break;
+  case 3:
+    glUniform3iv(location, count, v);
+    break;
+  case 4:
+    glUniform4iv(location, count, v);
+    break;
+  default:
+    VGFX_ABORT("Unsupported uniform count, `%lu`.", count);
+    break;
+  }
+}
+
+void vgfx_gl_uniform_uv(const char* name, usize count, const u32 *v) {
+  
+  i32 location = glGetUniformLocation(s_gl_bound_shader, name);
+
+  VGFX_GL_DEBUG_UNIFORM_WARNING(location, name);
+
+  switch (count) {
+  case 1:
+    glUniform1uiv(location, count, v);
+    break;
+  case 2:
+    glUniform2uiv(location, count, v);
+    break;
+  case 3:
+    glUniform3uiv(location, count, v);
+    break;
+  case 4:
+    glUniform4uiv(location, count, v);
+    break;
+  default:
+    VGFX_ABORT("Unsupported uniform count, `%lu`.", count);
+    break;
+  }
+}
+
+void vgfx_gl_uniform_mat2fv(const char *name, usize count, bool trans, const f32 *v) {
+
+  i32 location = glGetUniformLocation(s_gl_bound_shader, name);
+
+  VGFX_GL_DEBUG_UNIFORM_WARNING(location, name);
+
+  glUniformMatrix2fv(location, count, trans, v);
+}
+
+
+void vgfx_gl_uniform_mat3fv(const char *name, usize count, bool trans, const f32 *v) {
+
+  i32 location = glGetUniformLocation(s_gl_bound_shader, name);
+
+  VGFX_GL_DEBUG_UNIFORM_WARNING(location, name);
+
+  glUniformMatrix3fv(location, count, trans, v);
+}
+
+void vgfx_gl_uniform_mat4fv(const char *name, usize count, bool trans, const f32 *v) {
+
+  i32 location = glGetUniformLocation(s_gl_bound_shader, name);
+
+  VGFX_GL_DEBUG_UNIFORM_WARNING(location, name);
+
+  glUniformMatrix4fv(location, count, trans, v);
+}
+
+void vgfx_gl_uniform_mat2x3fv(const char *name, usize count, bool trans, const f32 *v) {
+
+  i32 location = glGetUniformLocation(s_gl_bound_shader, name);
+
+  VGFX_GL_DEBUG_UNIFORM_WARNING(location, name);
+
+  glUniformMatrix2x3fv(location, count, trans, v);
+}
+
+void vgfx_gl_uniform_mat3x2fv(const char *name, usize count, bool trans, const f32 *v) {
+
+  i32 location = glGetUniformLocation(s_gl_bound_shader, name);
+
+  VGFX_GL_DEBUG_UNIFORM_WARNING(location, name);
+
+  glUniformMatrix3x2fv(location, count, trans, v);
+}
+
+void vgfx_gl_uniform_mat2x4fv(const char *name, usize count, bool trans, const f32 *v) {
+
+  i32 location = glGetUniformLocation(s_gl_bound_shader, name);
+
+  VGFX_GL_DEBUG_UNIFORM_WARNING(location, name);
+
+  glUniformMatrix2x4fv(location, count, trans, v);
+}
+
+void vgfx_gl_uniform_mat4x2fv(const char *name, usize count, bool trans, const f32 *v) {
+
+  i32 location = glGetUniformLocation(s_gl_bound_shader, name);
+
+  VGFX_GL_DEBUG_UNIFORM_WARNING(location, name);
+
+  glUniformMatrix4x2fv(location, count, trans, v);
+}
+
+void vgfx_gl_uniform_mat3x4fv(const char *name, usize count, bool trans, const f32 *v) {
+
+  i32 location = glGetUniformLocation(s_gl_bound_shader, name);
+
+  VGFX_GL_DEBUG_UNIFORM_WARNING(location, name);
+
+  glUniformMatrix3x4fv(location, count, trans, v);
+}
+
+void vgfx_gl_uniform_mat4x3fv(const char *name, usize count, bool trans, const f32 *v) {
+
+  i32 location = glGetUniformLocation(s_gl_bound_shader, name);
+
+  VGFX_GL_DEBUG_UNIFORM_WARNING(location, name);
+
+  glUniformMatrix4x3fv(location, count, trans, v);
+}
+

@@ -70,10 +70,62 @@ usize _vgfx_gl_get_format_size(u32 format);
 //
 // =============================================
 
-void vgfx_gl_bind_texture_handle(VGFX_AS_Asset *as, u32 slot);
+void vgfx_gl_bind_texture_handle(VGFX_AS_TextureHandle handle, u32 slot);
 
 void vgfx_gl_unbind_texture_handle(u32 slot);
 
-void vgfx_gl_bind_shader_program(VGFX_AS_Asset *as);
+void vgfx_gl_bind_shader_program(VGFX_AS_ShaderProgramHandle handle);
 
 void vgfx_gl_unbind_shader_program();
+
+// =============================================
+//
+//
+// Uniforms
+//
+//
+// =============================================
+
+#ifndef NDEBUG
+#define VGFX_GL_ENABLE_DEBUG_UNIFORM_WARNING 1
+#else
+#define VGFX_GL_ENABLE_DEBUG_UNIFORM_WARNING 0
+#endif
+
+#if VGFX_GL_ENABLE_DEBUG_UNIFORM_WARNING
+#define VGFX_GL_DEBUG_UNIFORM_WARNING(loc, name)                               \
+  do {                                                                         \
+    if (loc == -1)                                                             \
+      VGFX_DEBUG_WARN("Invalid uniform location, `%s`.\n", name);              \
+  } while (0)
+#else
+#define VGFX_GL_DEBUG_UNIFORM_WARNING(loc, name)                               \
+  do {                                                                         \
+    (void)(loc);                                                               \
+    (void)(name);                                                              \
+  } while (0)
+#endif
+
+void vgfx_gl_uniform_fv(const char* name, usize count, const f32 *v);
+
+void vgfx_gl_uniform_iv(const char* name, usize count, const i32 *v);
+
+void vgfx_gl_uniform_uv(const char* name, usize count, const u32 *v);
+
+void vgfx_gl_uniform_mat2fv(const char *name, usize count, bool trans, const f32 *v);
+
+void vgfx_gl_uniform_mat3fv(const char *name, usize count, bool trans, const f32 *v);
+
+void vgfx_gl_uniform_mat4fv(const char *name, usize count, bool trans, const f32 *v);
+
+void vgfx_gl_uniform_mat2x3fv(const char *name, usize count, bool trans, const f32 *v);
+
+void vgfx_gl_uniform_mat3x2fv(const char *name, usize count, bool trans, const f32 *v);
+
+void vgfx_gl_uniform_mat2x4fv(const char *name, usize count, bool trans, const f32 *v);
+
+void vgfx_gl_uniform_mat4x2fv(const char *name, usize count, bool trans, const f32 *v);
+
+void vgfx_gl_uniform_mat3x4fv(const char *name, usize count, bool trans, const f32 *v);
+
+void vgfx_gl_uniform_mat4x3fv(const char *name, usize count, bool trans, const f32 *v);

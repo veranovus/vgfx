@@ -3,8 +3,6 @@
 #include "vgfx/core.h"
 #include "vgfx/gl.h"
 #include "vgfx/os.h"
-#include "vgfx/shader.h"
-#include "vgfx/texture.h"
 #include <time.h>
 
 const usize WINDOW_WIDTH = 800;
@@ -13,6 +11,7 @@ const char *WINDOW_TITLE = "cgame";
 
 const char *FRAG_SHADER_PATH = "res/shader/base.frag";
 const char *VERT_SHADER_PATH = "res/shader/base.vert";
+
 const char *TEST_FONT_PATH = "res/font/FiraCode-Medium.ttf";
 const char *TEST_TEXTURE_PATH = "res/bunny.png";
 
@@ -112,7 +111,7 @@ int main(i32 argc, char *argv[]) {
 
   mat4 *buff = (mat4 *)calloc(MAX_INSTANCE, sizeof(mat4));
 
-  const usize INITIAL_OBJ_COUNT = 10000;
+  const usize INITIAL_OBJ_COUNT = 50;
 
   typedef struct Object {
     vec3 pos;
@@ -177,60 +176,70 @@ int main(i32 argc, char *argv[]) {
     // Set instance data
     f32 ww = WINDOW_WIDTH / 2.0f;
     f32 wh = WINDOW_HEIGHT / 2.0f;
-    usize instance_count = 0;
     vec2 tmp;
     const f32 speed = 100.0f * dt;
 
-    for (usize i = 0; i < objs.len; ++i) {
-      Object *obj = &vstd_vector_get(Object, objs, i);
-
-      glm_vec2_scale(obj->dir, speed, tmp);
-
-      if (obj->pos[0] + tmp[0] < -ww || obj->pos[0] + tmp[0] > ww) {
-        obj->dir[0] = -obj->dir[0];
-      } else {
-        obj->pos[0] += tmp[0];
-      }
-
-      if (obj->pos[1] + tmp[1] < -wh || obj->pos[1] + tmp[1] > wh) {
-        obj->dir[1] = -obj->dir[1];
-      } else {
-        obj->pos[1] += tmp[1];
-      }
-
-      glm_mat4_identity(buff[i]);
-      glm_translate(buff[i], obj->pos);
-      glm_scale(buff[i], obj->scl);
-      glm_mat4_mul(vpm, buff[i], buff[i]);
-
-      instance_count += 1;
-    }
-
-    vgfx_gl_buffer_sub_data(&dbuff, 0, sizeof(mat4) * instance_count, &buff[0]);
-
-    // Get from handle
-    VGFX_AS_Shader *shader;
-    VGFX_ASSET_CAST(program, VGFX_ASSET_TYPE_SHADER, shader);
-
-    // Render the scene
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    vgfx_gl_bind_shader_program(program);
+    for (usize i = 0; i < 3; ++i) {
+      usize instance_count = 0;
 
-    vgfx_shader_program_uniform_f1(shader->handle, "u_time", (f32)time);
-    vgfx_shader_program_uniform_i1(shader->handle, "u_texture", 0);
+      for (usize i = 0; i < objs.len; ++i) {
+        Object *obj = &vstd_vector_get(Object, objs, i);
 
-    vgfx_gl_bind_texture_handle(texture, 0);
+        glm_vec2_scale(obj->dir, speed, tmp);
 
-    glBindVertexArray(va.handle);
+        if (obj->pos[0] + tmp[0] < -ww || obj->pos[0] + tmp[0] > ww) {
+          obj->dir[0] = -obj->dir[0];
+        } else {
+          obj->pos[0] += tmp[0];
+        }
 
-    glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0,
-                            instance_count);
+        if (obj->pos[1] + tmp[1] < -wh || obj->pos[1] + tmp[1] > wh) {
+          obj->dir[1] = -obj->dir[1];
+        } else {
+          obj->pos[1] += tmp[1];
+        }
 
-    glBindVertexArray(0);
-    vgfx_gl_unbind_texture_handle(0);
-    vgfx_gl_unbind_shader_program();
+        glm_mat4_identity(buff[i]);
+        glm_translate(buff[i], obj->pos);
+        glm_scale(buff[i], obj->scl);
+        glm_mat4_mul(vpm, buff[i], buff[i]);
+
+        instance_count += 1;
+      }
+
+      vgfx_gl_buffer_sub_data(&dbuff, 0, sizeof(mat4) * instance_count,
+                              &buff[0]);
+
+      // Get shader from handle
+      VGFX_AS_Shader *sh;
+      VGFX_ASSET_CAST(program, VGFX_ASSET_TYPE_SHADER, sh);
+
+      // Get texture from handle
+      VGFX_AS_Texture *th;
+      VGFX_ASSET_CAST(texture, VGFX_ASSET_TYPE_TEXTURE, th);
+
+      // Render the scene
+
+      vgfx_gl_bind_shader_program(sh->handle);
+
+      vgfx_gl_uniform_fv("u_time", 1, (f32[1]){(f32)time});
+      vgfx_gl_uniform_iv("u_texture", 1, (i32[1]){0});
+
+      usize tslot = 0;
+      vgfx_gl_bind_texture_handle(th->handle, tslot);
+
+      glBindVertexArray(va.handle);
+
+      glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0,
+                              instance_count);
+
+      glBindVertexArray(VGFX_GL_INVALID_HANDLE);
+      vgfx_gl_unbind_texture_handle(tslot);
+      vgfx_gl_unbind_shader_program();
+    }
 
     vgfx_os_window_swap_buffers(win);
     vgfx_os_poll_events();
@@ -247,14 +256,11 @@ int main(i32 argc, char *argv[]) {
   vgfx_gl_buffer_delete(&dbuff);
 
   // Free resources
-  // vgfx_texture_free(texture);
   vgfx_camera_free(s_camera);
 
   // Free the vgfx
   vgfx_as_asset_server_free(asset_server);
   vgfx_os_window_free(win);
-  // vgfx_window_free(window);
-  // vgfx_terminate();
 
   return 0;
 }

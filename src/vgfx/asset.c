@@ -397,6 +397,7 @@ u32 _vgfx_as_compile_shader(u32 type, const char** source) {
 
   if (!success) {
     VSTD_String tmp;
+
     switch (type) {
     case GL_VERTEX_SHADER:
       tmp = vstd_string_from(VSTD_STRINGIFY(GL_VERTEX_SHADER));
@@ -420,6 +421,8 @@ u32 _vgfx_as_compile_shader(u32 type, const char** source) {
       VGFX_ABORT("Failed to compile shader, unknown shader type `%d`.", type);
       break;
     }
+
+    glGetShaderInfoLog(handle, 512, NULL, info_log);
 
     // TODO: Switch to VGFX_DEBUG_ERROR
     VGFX_DEBUG_WARN("Failed to compile `%s`:\n%s", tmp.ptr, info_log);

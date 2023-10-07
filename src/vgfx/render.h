@@ -19,8 +19,8 @@ struct VGFX_RD_Pipeline {
   VGFX_AS_Asset *shader;
   VGFX_GL_Buffer vb;
   VGFX_GL_VertexArray va;
-  usize max_render_count;
-  usize crn_render_count;
+  usize max_vertex_count;
+  usize crn_vertex_count;
   VSTD_Vector(VGFX_RD_Vertex) cpu_vb;
   usize crn_texture;
   VGFX_AS_TextureHandle textures[VGFX_RD_MAX_BOUND_TEXTURE];
@@ -29,7 +29,9 @@ struct VGFX_RD_Pipeline {
 typedef struct VGFX_RD_Vertex VGFX_RD_Vertex;
 struct VGFX_RD_Vertex {
   f32 shader;
+  f32 texture;
   f32 pos[3];
+  f32 tex[2];
   f32 col[4];
 };
 
@@ -49,6 +51,8 @@ void vgfx_rd_pipeline_flush();
 //
 // =============================================
 
-void vgfx_rd_send_vert(f32 shader, f32 pos[3], f32 col[4]);
+void vgfx_rd_send_vert(f32 shader, f32 texture, vec3 pos, vec2 tex, vec4 col);
 
-void vgfx_rd_send_quad(f32 shader, f32 pos[3], f32 scl[2], f32 col[4]);
+void vgfx_rd_send_quad(f32 shader, f32 texture, vec3 pos, vec2 scl, vec4 col);
+
+void vgfx_rd_send_text(VGFX_AS_Asset *text, vec3 pos, vec2 scl, vec4 col);

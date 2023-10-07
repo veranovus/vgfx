@@ -32,7 +32,7 @@
 #else
 #define VGFX_ASSET_DEBUG_CAST(asset, asset_type, var)                          \
   do {                                                                         \
-    var = typeof(var) asset->handle;                                           \
+    var = (typeof(var))asset->handle;                                          \
   } while (0)
 #endif
 

@@ -1,8 +1,10 @@
 #include "vgfx/asset.h"
 #include "vgfx/camera.h"
+#include "vgfx/input.h"
 #include "vgfx/core.h"
 #include "vgfx/gl.h"
 #include "vgfx/os.h"
+#include "vgfx/render.h"
 #include <time.h>
 
 const usize WINDOW_WIDTH = 800;
@@ -17,10 +19,43 @@ const char *TEST_TEXTURE_PATH = "res/bunny.png";
 
 static VGFX_Camera *s_camera = NULL;
 
+typedef struct Object {
+  vec3 pos;
+  vec3 scl;
+  vec4 col;
+  vec2 dir;
+} Object;
+
+void spawn_bunny(VSTD_Vector(Object) *objs, f32 x, f32 y) {
+  
+  for (usize i = 0; i < 10000; ++i) {
+    f32 dirx = (rand() % 100 < 50) ? (rand() % 100) / -100.0f
+                                   : (rand() % 100) / 100.0f;
+    f32 diry = (rand() % 100 < 50) ? (rand() % 100) / -100.0f
+                                   : (rand() % 100) / 100.0f;
+
+    f32 r = (f32)(rand() % 255 + 1) / 255.0f;
+    f32 g = (f32)(rand() % 255 + 1) / 255.0f;
+    f32 b = (f32)(rand() % 255 + 1) / 255.0f;
+
+    vstd_vector_push(
+      Object, 
+      objs,
+      ((Object){
+        .pos = {x, y, 0.0f},
+        .scl = {25.0f, 25.0f, 1.0f},
+        .col = {r, g, b, 1.0f},
+        .dir = {dirx, diry},
+    }));
+  }
+}
+
 int main(i32 argc, char *argv[]) {
 
   VGFX_UNUSED(argc);
   VGFX_UNUSED(argv);
+
+  srand(time(NULL));
 
   // VGFX setup
   VSTD_String title = vstd_string_format("%s | %s", WINDOW_TITLE, PKG_VERSION);
@@ -49,96 +84,22 @@ int main(i32 argc, char *argv[]) {
                         .texture_wrap = GL_REPEAT,
                     });
 
-  // Base Shader program
-  VGFX_AS_Asset *program = vgfx_as_asset_server_load(
-      asset_server, &(VGFX_AS_AssetDesc){
-                        .type = VGFX_ASSET_TYPE_SHADER,
-                        .shader_vert_path = VERT_SHADER_PATH,
-                        .shader_frag_path = FRAG_SHADER_PATH,
-                    });
+  // Create pipeline
+  VGFX_RD_Pipeline *pipeline = vgfx_rd_pipeline_new(asset_server);
 
   // Setup camera
   s_camera = vgfx_camera_new(glm_rad(45.0f), WINDOW_WIDTH, WINDOW_HEIGHT, 0.0f,
                              1000.0f, VGFX_CameraModeOrthographic);
 
   // Setup render pipeline
-  const usize MAX_INSTANCE = 100000;
+  const usize MAX_BUNNY = 100000;
 
-  f32 vertices[] = {
-      0.5f,  0.5f,  0.0f, 1.0f, 0.0f, 0.5f,  -0.5f, 0.0f, 1.0f, 1.0f,
-      -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, -0.5f, 0.5f,  0.0f, 0.0f, 0.0f,
-  };
+  VSTD_Vector(Object) objs = vstd_vector_with_capacity(Object, MAX_BUNNY);
 
-  u32 indices[] = {0, 1, 3, 1, 2, 3};
-
-  VGFX_GL_Buffer vbuff = vgfx_gl_buffer_create(GL_ARRAY_BUFFER);
-  vgfx_gl_buffer_data(&vbuff, GL_STATIC_DRAW, sizeof(vertices), vertices);
-
-  VGFX_GL_Buffer ibuff = vgfx_gl_buffer_create(GL_ELEMENT_ARRAY_BUFFER);
-  vgfx_gl_buffer_data(&ibuff, GL_STATIC_DRAW, sizeof(indices), indices);
-
-  VGFX_GL_Buffer dbuff = vgfx_gl_buffer_create(GL_ARRAY_BUFFER);
-  vgfx_gl_buffer_data(&dbuff, GL_DYNAMIC_DRAW, sizeof(mat4) * MAX_INSTANCE,
-                      NULL);
-
-  VGFX_GL_VertexArray va = vgfx_gl_vertex_array_create();
-
-  VGFX_GL_VertexAttribLayout layout0 = {
-      .buffer = vbuff,
-      .update_freq = 0,
-      .attribs =
-          {
-              {3, GL_FLOAT, GL_FALSE},
-              {2, GL_FLOAT, GL_FALSE},
-          },
-  };
-  vgfx_gl_vertex_array_layout(&va, &layout0);
-
-  VGFX_GL_VertexAttribLayout layout1 = {
-      .buffer = dbuff,
-      .update_freq = 1,
-      .attribs =
-          {
-              {4, GL_FLOAT, GL_FALSE},
-              {4, GL_FLOAT, GL_FALSE},
-              {4, GL_FLOAT, GL_FALSE},
-              {4, GL_FLOAT, GL_FALSE},
-          },
-  };
-  vgfx_gl_vertex_array_layout(&va, &layout1);
-
-  vgfx_gl_vertex_array_index_buffer(&va, &ibuff);
-
-  mat4 *buff = (mat4 *)calloc(MAX_INSTANCE, sizeof(mat4));
-
-  const usize INITIAL_OBJ_COUNT = 50;
-
-  typedef struct Object {
-    vec3 pos;
-    vec3 scl;
-    vec2 dir;
-  } Object;
-
-  VSTD_Vector(Object) objs = vstd_vector_with_capacity(Object, MAX_INSTANCE);
-
-  srand(time(NULL));
-
-  for (usize i = 0; i < INITIAL_OBJ_COUNT; ++i) {
-    f32 x = (WINDOW_WIDTH / 2.0f) - rand() % WINDOW_WIDTH;
-    f32 y = (WINDOW_HEIGHT / 2.0f) - rand() % WINDOW_HEIGHT;
-
-    f32 dirx = (rand() % 100 < 50) ? (rand() % 100) / -100.0f
-                                   : (rand() % 100) / 100.0f;
-    f32 diry = (rand() % 100 < 50) ? (rand() % 100) / -100.0f
-                                   : (rand() % 100) / 100.0f;
-
-    vstd_vector_push(Object, (&objs),
-                     ((Object){.pos = {x, y, 0.0f},
-                               .scl = {25.0f, 25.0f, 1.0f},
-                               .dir = {dirx, diry}}));
-  }
+  spawn_bunny(&objs, 0, 0);
 
   bool run = true;
+  bool spawn = false;
 
   volatile u32 fps_counter, fps;
   volatile f64 fps_timer = 0.0f;
@@ -156,7 +117,8 @@ int main(i32 argc, char *argv[]) {
       fps_timer = 0;
       fps = fps_counter;
       fps_counter = 0;
-      printf("FPS: %u\n", fps);
+      printf("== FPS: %u\n", fps);
+      printf("+  CNT: %lu\n", objs.len);
     }
 
     VSTD_Vector(VGFX_OS_Event) events = vgfx_os_events(win);
@@ -164,82 +126,71 @@ int main(i32 argc, char *argv[]) {
       if (_$iter->type == VGFX_OS_EVENT_TYPE_WINDOW_CLOSE) {
         run = false;
       }
+
+      if (_$iter->type == VGFX_OS_EVENT_TYPE_KEY_PRESS) {
+        if (_$iter->key_code == VGFX_IN_KEY_ENTER) {
+          spawn = true;
+        }
+      }
     });
 
-    // Update camera view
-    vgfx_camera_update_view(s_camera);
+    if (spawn) {
+      f64 x, y;
+      glfwGetCursorPos((void*)win, &x, &y);
 
-    // Calculate mvp matrix
-    mat4 vpm;
-    vgfx_camera_get_matrix(s_camera, vpm);
+      x -= (WINDOW_WIDTH / 2.0f); 
+      y = (WINDOW_HEIGHT - y) - (WINDOW_HEIGHT / 2.0f);
+  
+      spawn_bunny(&objs, x, y);
 
-    // Set instance data
+      spawn = false;
+    }
+
     f32 ww = WINDOW_WIDTH / 2.0f;
     f32 wh = WINDOW_HEIGHT / 2.0f;
     vec2 tmp;
     const f32 speed = 100.0f * dt;
 
+    for (usize i = 0; i < objs.len; ++i) {
+      Object *obj = &vstd_vector_get(Object, objs, i);
+
+      glm_vec2_scale(obj->dir, speed, tmp);
+
+      if (obj->pos[0] + tmp[0] < -ww || obj->pos[0] + tmp[0] > ww) {
+        obj->dir[0] = -obj->dir[0];
+      } else {
+        obj->pos[0] += tmp[0];
+      }
+
+      if (obj->pos[1] + tmp[1] < -wh || obj->pos[1] + tmp[1] > wh) {
+        obj->dir[1] = -obj->dir[1];
+      } else {
+        obj->pos[1] += tmp[1];
+      }      
+    }
+
+    // Update camera view
+    vgfx_camera_update_view(s_camera);
+
+    // Get view & projection matrix
+    mat4 vpm;
+    vgfx_camera_get_matrix(s_camera, vpm);
+
+    // Set instance data
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    for (usize i = 0; i < 3; ++i) {
-      usize instance_count = 0;
+    // Render the scene
+    vgfx_rd_pipeline_begin(pipeline);
 
-      for (usize i = 0; i < objs.len; ++i) {
-        Object *obj = &vstd_vector_get(Object, objs, i);
+    vgfx_gl_uniform_fv("u_time", 1, (f32[1]){(f32)time});
+    vgfx_gl_uniform_mat4fv("u_vpm", 1, false, &vpm[0][0]);
 
-        glm_vec2_scale(obj->dir, speed, tmp);
+    vstd_vector_iter(Object, objs, {
+      vgfx_rd_send_text(texture, _$iter->pos, _$iter->scl, _$iter->col);
+    });
 
-        if (obj->pos[0] + tmp[0] < -ww || obj->pos[0] + tmp[0] > ww) {
-          obj->dir[0] = -obj->dir[0];
-        } else {
-          obj->pos[0] += tmp[0];
-        }
-
-        if (obj->pos[1] + tmp[1] < -wh || obj->pos[1] + tmp[1] > wh) {
-          obj->dir[1] = -obj->dir[1];
-        } else {
-          obj->pos[1] += tmp[1];
-        }
-
-        glm_mat4_identity(buff[i]);
-        glm_translate(buff[i], obj->pos);
-        glm_scale(buff[i], obj->scl);
-        glm_mat4_mul(vpm, buff[i], buff[i]);
-
-        instance_count += 1;
-      }
-
-      vgfx_gl_buffer_sub_data(&dbuff, 0, sizeof(mat4) * instance_count,
-                              &buff[0]);
-
-      // Get shader from handle
-      VGFX_AS_Shader *sh;
-      VGFX_ASSET_CAST(program, VGFX_ASSET_TYPE_SHADER, sh);
-
-      // Get texture from handle
-      VGFX_AS_Texture *th;
-      VGFX_ASSET_CAST(texture, VGFX_ASSET_TYPE_TEXTURE, th);
-
-      // Render the scene
-
-      vgfx_gl_bind_shader_program(sh->handle);
-
-      vgfx_gl_uniform_fv("u_time", 1, (f32[1]){(f32)time});
-      vgfx_gl_uniform_iv("u_texture", 1, (i32[1]){0});
-
-      usize tslot = 0;
-      vgfx_gl_bind_texture_handle(th->handle, tslot);
-
-      glBindVertexArray(va.handle);
-
-      glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0,
-                              instance_count);
-
-      glBindVertexArray(VGFX_GL_INVALID_HANDLE);
-      vgfx_gl_unbind_texture_handle(tslot);
-      vgfx_gl_unbind_shader_program();
-    }
+    vgfx_rd_pipeline_flush();
 
     vgfx_os_window_swap_buffers(win);
     vgfx_os_poll_events();
@@ -247,13 +198,9 @@ int main(i32 argc, char *argv[]) {
 
   // Delete vectors
   vstd_vector_free(Object, (&objs));
-  free(buff);
 
   // Delete render pipeline
-  vgfx_gl_vertex_array_delete(&va);
-  vgfx_gl_buffer_delete(&vbuff);
-  vgfx_gl_buffer_delete(&ibuff);
-  vgfx_gl_buffer_delete(&dbuff);
+  vgfx_rd_piepline_free(pipeline);
 
   // Free resources
   vgfx_camera_free(s_camera);

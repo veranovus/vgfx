@@ -1,10 +1,8 @@
 #include "render.h"
 
-const char *VGFX_RD_BASE_VERT_PATH = "res/shader/default.vert";
+const usize VGFX_RD_MAX_QUAD_COUNT = 15000;
 
-const char *VGFX_RD_BASE_FRAG_PATH = "res/shader/default.frag";
-
-const usize VGFX_RD_MAX_VERTEX_COUNT = 15000 * 6;
+const usize VGFX_RD_MAX_VERTEX_COUNT = VGFX_RD_MAX_QUAD_COUNT * 6;
 
 static VGFX_RD_Pipeline *s_rd_bound_pipeline;
 
@@ -163,29 +161,50 @@ void vgfx_rd_send_vert(f32 texture, vec3 pos, vec2 tex, vec4 col) {
   s_rd_bound_pipeline->crn_vertex_count += 1;
 }
 
-void vgfx_rd_send_quad(f32 texture, vec3 pos, vec2 scl, vec4 col) {
+void vgfx_rd_send_quad(f32 texture, vec3 pos, vec2 scl, vec4 tex, vec4 col) {
+
+  vec3 tpos = {pos[0], pos[1], pos[2]};
+  vec2 ttex = {tex[0], tex[1] + tex[3]};
   
   // First triangle
-  vgfx_rd_send_vert(texture, (vec3){pos[0], pos[1], pos[2]}, (vec2){0.0f, 1.0f}, col);
+  vgfx_rd_send_vert(texture, tpos, ttex, col);
 
-  vgfx_rd_send_vert(texture, (vec3){pos[0] + scl[0], pos[1], pos[2]}, (vec2){1.0f, 1.0f}, col);
+  tpos[0] += scl[0];
 
-  vgfx_rd_send_vert(texture, (vec3){pos[0], pos[1] + scl[1], pos[2]}, (vec2){0.0f, 0.0f}, col);
+  ttex[0] += tex[2];
+  vgfx_rd_send_vert(texture, tpos, ttex, col);
+
+  tpos[0] -= scl[0];
+  tpos[1] += scl[1];
+
+  ttex[0] -= tex[2];
+  ttex[1] -= tex[3];
+  vgfx_rd_send_vert(texture, tpos, ttex, col);
 
   // Second triangle
-  vgfx_rd_send_vert(texture, (vec3){pos[0] + scl[0], pos[1], pos[2]}, (vec2){1.0f, 1.0f}, col);
+  tpos[0] += scl[0];
+  tpos[1] -= scl[1];
 
-  vgfx_rd_send_vert(texture, (vec3){pos[0], pos[1] + scl[1], pos[2]}, (vec2){0.0f, 0.0f}, col);
+  ttex[0] += tex[2];
+  ttex[1] += tex[3];
+  vgfx_rd_send_vert(texture, tpos, ttex, col);
 
-  vgfx_rd_send_vert(texture, (vec3){pos[0] + scl[0], pos[1] + scl[1], pos[2]}, (vec2){1.0f, 0.0f}, col);
+  tpos[0] -= scl[0];
+  tpos[1] += scl[1];
+
+  ttex[0] -= tex[2];
+  ttex[1] -= tex[3];
+  vgfx_rd_send_vert(texture, tpos, ttex, col);
+
+  tpos[0] += scl[0];
+
+  ttex[0] += tex[2];
+  vgfx_rd_send_vert(texture, tpos, ttex, col);
 }
 
-void vgfx_rd_send_texture(VGFX_AS_Asset *texture, vec3 pos, vec2 scl, vec4 col) {
+void vgfx_rd_send_texture(VGFX_AS_Texture *handle, vec3 pos, vec2 scl, vec4 tex, vec4 col) {
 
-  VGFX_DEBUG_ASSERT(texture, "Handle is NULL.");
-
-  VGFX_AS_Texture* handle;
-  VGFX_ASSET_DEBUG_CAST(texture, VGFX_ASSET_TYPE_TEXTURE, handle);
+  VGFX_DEBUG_ASSERT(handle, "Handle is NULL.");
 
   isize slot = -1;
 
@@ -220,5 +239,41 @@ void vgfx_rd_send_texture(VGFX_AS_Asset *texture, vec3 pos, vec2 scl, vec4 col) 
   }
 
 render_quad:
-  vgfx_rd_send_quad(slot, pos, scl, col);
+  if (!tex) {
+    vgfx_rd_send_quad(slot, pos, scl, (vec4) {0.0f, 0.0f, 1.0f, 1.0f}, col);
+  } else {
+    vgfx_rd_send_quad(slot, pos, scl, tex, col);
+  }
+}
+
+void vgfx_rd_send_text(VGFX_AS_Font *handle, const char* str, vec3 pos, vec4 col) {
+
+  VGFX_DEBUG_ASSERT(handle, "Handle is NULL.");
+
+  VGFX_AS_Texture tmp;
+  tmp.handle = handle->handle;
+
+  usize len = strlen(str);
+  f32 offset = 0;
+
+  for (usize i = 0; i < len; ++i) {
+    _VGFX_AS_Glyph *glyph = &vstd_vector_get(_VGFX_AS_Glyph, handle->glyphs, (usize)str[i]);
+
+    vec3 tpos = {
+      pos[0] + offset + glyph->brng[0], 
+      pos[1] - (glyph->size[1] - glyph->brng[1]), 
+      pos[2],
+    };
+
+    vec4 tex = {
+      glyph->offset,
+      0.0f,
+      glyph->size[0] / handle->size[0],
+      glyph->size[1] / handle->size[1],
+    };
+
+    vgfx_rd_send_texture(&tmp, tpos, glyph->size, tex, col);
+
+    offset += glyph->advn[0];
+  }
 }

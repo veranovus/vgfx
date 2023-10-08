@@ -11,8 +11,10 @@ const usize WINDOW_WIDTH = 800;
 const usize WINDOW_HEIGHT = 600;
 const char *WINDOW_TITLE = "cgame";
 
-const char *FRAG_SHADER_PATH = "res/shader/base.frag";
-const char *VERT_SHADER_PATH = "res/shader/base.vert";
+const char *BASE_FRAG_SHADER_PATH = "res/shader/base.frag";
+const char *BASE_VERT_SHADER_PATH = "res/shader/base.vert";
+const char *TEXT_FRAG_SHADER_PATH = "res/shader/text.frag";
+const char *TEXT_VERT_SHADER_PATH = "res/shader/text.vert";
 
 const char *TEST_FONT_PATH = "res/font/FiraCode-Medium.ttf";
 const char *TEST_TEXTURE_PATH = "res/bunny.png";
@@ -27,8 +29,13 @@ typedef struct Object {
 } Object;
 
 void spawn_bunny(VSTD_Vector(Object) *objs, f32 x, f32 y) {
+  static bool first = true;
+
+  usize num = (first) ? 10 : 10000;
+
+  first = false;
   
-  for (usize i = 0; i < 10000; ++i) {
+  for (usize i = 0; i < num; ++i) {
     f32 dirx = (rand() % 100 < 50) ? (rand() % 100) / -100.0f
                                    : (rand() % 100) / 100.0f;
     f32 diry = (rand() % 100 < 50) ? (rand() % 100) / -100.0f
@@ -76,19 +83,33 @@ int main(i32 argc, char *argv[]) {
   VGFX_AS_AssetServer *asset_server = vgfx_as_asset_server_new();
 
   // Load texture
-  VGFX_AS_Asset *texture = vgfx_as_asset_server_load(
-      asset_server, &(VGFX_AS_AssetDesc){
-                        .type = VGFX_ASSET_TYPE_TEXTURE,
-                        .texture_path = TEST_TEXTURE_PATH,
-                        .texture_filter = GL_NEAREST,
-                        .texture_wrap = GL_REPEAT,
-                    });
+  VGFX_AS_Asset *texture = vgfx_as_asset_server_load(asset_server, &(VGFX_AS_AssetDesc){
+    .type = VGFX_ASSET_TYPE_TEXTURE,
+    .texture_path = TEST_TEXTURE_PATH,
+    .texture_filter = GL_NEAREST,
+    .texture_wrap = GL_REPEAT,
+  });
 
-  // Load hader program
-  VGFX_AS_Asset *shader = vgfx_as_asset_server_load(asset_server, &(VGFX_AS_AssetDesc) {
+  // Load font
+  VGFX_AS_Asset *font = vgfx_as_asset_server_load(asset_server, &(VGFX_AS_AssetDesc){
+    .type = VGFX_ASSET_TYPE_FONT,
+    .font_path = TEST_FONT_PATH,
+    .font_range = { 32, 128 },
+    .font_size = 24,
+    .font_filter = GL_LINEAR,
+  });
+
+  // Load shader programs
+  VGFX_AS_Asset *base_shader = vgfx_as_asset_server_load(asset_server, &(VGFX_AS_AssetDesc) {
     .type = VGFX_ASSET_TYPE_SHADER,
-    .shader_vert_path = VERT_SHADER_PATH,
-    .shader_frag_path = FRAG_SHADER_PATH,
+    .shader_vert_path = BASE_VERT_SHADER_PATH,
+    .shader_frag_path = BASE_FRAG_SHADER_PATH,
+  });
+
+  VGFX_AS_Asset *text_shader = vgfx_as_asset_server_load(asset_server, &(VGFX_AS_AssetDesc) {
+    .type = VGFX_ASSET_TYPE_SHADER,
+    .shader_vert_path = TEXT_VERT_SHADER_PATH,
+    .shader_frag_path = TEXT_FRAG_SHADER_PATH,
   });
 
   // Create pipeline
@@ -108,6 +129,8 @@ int main(i32 argc, char *argv[]) {
   bool run = true;
   bool spawn = false;
 
+  VSTD_String fps_str = vstd_string_format("FPS : %04u", 0);
+
   volatile u32 fps_counter, fps;
   volatile f64 fps_timer = 0.0f;
   volatile f64 dt, last_frame;
@@ -118,14 +141,16 @@ int main(i32 argc, char *argv[]) {
     dt = time - last_frame;
     last_frame = time;
 
+
     fps_timer += dt;
     fps_counter += 1;
     if (fps_timer > 1.0f) {
       fps_timer = 0;
       fps = fps_counter;
       fps_counter = 0;
-      printf("== FPS: %u\n", fps);
-      printf("+  CNT: %lu\n", objs.len);
+      vstd_string_free(&fps_str);
+      fps_str = vstd_string_format("FPS : %04u", fps);
+      printf("== CNT: %lu\n", objs.len);
     }
 
     VSTD_Vector(VGFX_OS_Event) events = vgfx_os_events(win);
@@ -188,14 +213,34 @@ int main(i32 argc, char *argv[]) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Render the scene
-    vgfx_rd_pipeline_begin(pipeline, shader);
+    vgfx_rd_pipeline_begin(pipeline, base_shader);
 
     vgfx_gl_uniform_fv("u_time", 1, (f32[1]){(f32)time});
     vgfx_gl_uniform_mat4fv("u_vpm", 1, false, &vpm[0][0]);
 
+    VGFX_AS_Texture *th;
+    VGFX_ASSET_DEBUG_CAST(texture, VGFX_ASSET_TYPE_TEXTURE, th);
+
     vstd_vector_iter(Object, objs, {
-      vgfx_rd_send_texture(texture, _$iter->pos, _$iter->scl, _$iter->col);
+      vgfx_rd_send_texture(th, _$iter->pos, _$iter->scl, NULL, _$iter->col);
     });
+
+    vgfx_rd_pipeline_flush();
+
+
+    vgfx_rd_pipeline_begin(pipeline, text_shader);
+
+    vgfx_gl_uniform_fv("u_time", 1, (f32[1]){(f32)time});
+    vgfx_gl_uniform_mat4fv("u_vpm", 1, false, &vpm[0][0]);
+
+    VGFX_AS_Font *fh;
+    VGFX_ASSET_DEBUG_CAST(font, VGFX_ASSET_TYPE_FONT, fh);
+
+    vgfx_rd_send_text(
+      fh, fps_str.ptr, 
+      (vec3){0.0f, (WINDOW_HEIGHT / 2.0f) - 75.0f, 100.0f}, 
+      (vec4){1.0f, 1.0f, 1.0f, 1.0f}
+    );
 
     vgfx_rd_pipeline_flush();
 

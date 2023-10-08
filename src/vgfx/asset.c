@@ -218,7 +218,7 @@ void *_vgfx_as_load_font(VGFX_AS_AssetDesc *desc) {
 
   // Setup Freetype
   FT_Library ft;
-  VGFX_ASSERT(FT_Init_FreeType(&ft), "Freetype failed to initiazlize.");
+  VGFX_ASSERT(!FT_Init_FreeType(&ft), "Freetype failed to initiazlize.");
 
   FT_Face face;
   VGFX_ASSERT(!FT_New_Face(ft, desc->font_path, 0, &face),

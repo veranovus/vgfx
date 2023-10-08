@@ -53,8 +53,19 @@ void vgfx_rd_pipeline_flush();
 //
 // =============================================
 
+#ifndef VGFX_RD_SUB_TEXTURE
+#define VGFX_RD_SUB_TEXTURE(w, h, i)                                           \
+  (vec4) {                                                                     \
+    (f32)((i32)i % (i32)w) * (1.0f / (f32)w),                                  \
+        (f32)((i32)i / (i32)w) * (1.0f / (f32)h), 1.0f / (f32)w,               \
+        1.0f / (f32)h,                                                         \
+  }
+#endif
+
 void vgfx_rd_send_vert(f32 texture, vec3 pos, vec2 tex, vec4 col);
 
-void vgfx_rd_send_quad(f32 texture, vec3 pos, vec2 scl, vec4 col);
+void vgfx_rd_send_quad(f32 texture, vec3 pos, vec2 scl, vec4 tex, vec4 col);
 
-void vgfx_rd_send_texture(VGFX_AS_Asset *text, vec3 pos, vec2 scl, vec4 col);
+void vgfx_rd_send_texture(VGFX_AS_Texture *handle, vec3 pos, vec2 scl, vec4 tex, vec4 col);
+
+void vgfx_rd_send_text(VGFX_AS_Font *handle, const char* str, vec3 pos, vec4 col);

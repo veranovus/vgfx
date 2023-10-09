@@ -1,6 +1,6 @@
-# Untitled C Game
+# VGFX
 
-Awesome game that I'm currently working on it's written from scratch using only C99 and OpenGL.
+Simple multimedia framework written in C99.
 
 > Version 0.3.5
 
@@ -17,3 +17,4 @@ Awesome game that I'm currently working on it's written from scratch using only 
 - `v0.3.3`: Implemented batched rendering.
 - `v0.3.4`: Implemented sub texture rendering.
 - `v0.3.4`: Implemented text rendering.
+- `v0.3.5`: Better text render size calculation.

@@ -2,9 +2,9 @@
 
 #include <glfw/glfw3.h>
 
-static bool s_os_glfw_init = false;
+static bool s_os_glfw_init      = false;
 
-static bool s_os_glad_proc = false;
+static bool s_os_glad_proc      = false;
 
 static bool s_os_event_map_init = false;
 
@@ -18,7 +18,8 @@ static VSTD_Map(void *, VSTD_Vector(VGFX_OS_Event)) s_os_event_map;
 //
 // =============================================
 
-VGFX_OS_WindowHandle vgfx_os_window_open(VGFX_OS_WindowDesc *desc) {
+VGFX_OS_WindowHandle 
+vgfx_os_window_open(VGFX_OS_WindowDesc *desc) {
 
   VGFX_ASSERT(desc, "Window Descriptro can't be NULL");
 
@@ -82,7 +83,8 @@ VGFX_OS_WindowHandle vgfx_os_window_open(VGFX_OS_WindowDesc *desc) {
   return (VGFX_OS_WindowHandle)win;
 }
 
-void vgfx_os_window_free(VGFX_OS_WindowHandle win) {
+void 
+vgfx_os_window_free(VGFX_OS_WindowHandle win) {
 
   VSTD_Vector(VGFX_OS_Event) *result = NULL;
   vstd_map_get(void *, VSTD_Vector(VGFX_OS_Event), s_os_event_map, (void *)win,
@@ -102,7 +104,8 @@ void vgfx_os_window_free(VGFX_OS_WindowHandle win) {
   glfwDestroyWindow((GLFWwindow *)win);
 }
 
-void vgfx_os_window_swap_buffers(VGFX_OS_WindowHandle win) {
+void 
+vgfx_os_window_swap_buffers(VGFX_OS_WindowHandle win) {
 
   glfwSwapBuffers((GLFWwindow *)win);
 }
@@ -115,7 +118,8 @@ void vgfx_os_window_swap_buffers(VGFX_OS_WindowHandle win) {
 //
 // =============================================
 
-void vgfx_os_poll_events() {
+void 
+vgfx_os_poll_events() {
 
   vstd_map_iter(void *, VSTD_Vector(VGFX_OS_Event), s_os_event_map,
                 { vstd_vector_clear(VSTD_Vector(VGFX_OS_Event), _$iter.val); });
@@ -123,7 +127,8 @@ void vgfx_os_poll_events() {
   glfwPollEvents();
 }
 
-VSTD_Vector(VGFX_OS_Event) vgfx_os_events(VGFX_OS_WindowHandle win) {
+VSTD_Vector(VGFX_OS_Event) 
+vgfx_os_events(VGFX_OS_WindowHandle win) {
 
   VSTD_Vector(VGFX_OS_Event) *result = NULL;
   vstd_map_get(void *, VSTD_Vector(VGFX_OS_Event), s_os_event_map, (void *)win,
@@ -135,7 +140,8 @@ VSTD_Vector(VGFX_OS_Event) vgfx_os_events(VGFX_OS_WindowHandle win) {
   return *result;
 }
 
-void _vgfx_os_push_event(void *win, VGFX_OS_Event *e) {
+void 
+_vgfx_os_push_event(void *win, VGFX_OS_Event *e) {
 
   VSTD_Vector(VGFX_OS_Event) *ev = NULL;
   vstd_map_get(void *, VSTD_Vector(VGFX_OS_Event), s_os_event_map, win, ev);
@@ -148,75 +154,82 @@ void _vgfx_os_push_event(void *win, VGFX_OS_Event *e) {
   vstd_vector_push(VGFX_OS_Event, ev, *e);
 }
 
-void _vgfx_os_window_callback_pos(void *win, i32 x, i32 y) {
+void 
+_vgfx_os_window_callback_pos(void *win, i32 x, i32 y) {
 
   _vgfx_os_push_event(win, &(VGFX_OS_Event){
-                               .type = VGFX_OS_EVENT_TYPE_WINDOW_POS,
-                               .window_posx = x,
-                               .window_posy = y,
-                           });
+    .type = VGFX_OS_EVENT_TYPE_WINDOW_POS,
+    .window_posx = x,
+    .window_posy = y,
+  });
 }
 
-void _vgfx_os_window_callback_size(void *win, i32 w, i32 h) {
+void 
+_vgfx_os_window_callback_size(void *win, i32 w, i32 h) {
 
   _vgfx_os_push_event(win, &(VGFX_OS_Event){
-                               .type = VGFX_OS_EVENT_TYPE_WINDOW_SIZE,
-                               .window_posx = w,
-                               .window_posy = h,
-                           });
+    .type = VGFX_OS_EVENT_TYPE_WINDOW_SIZE,
+    .window_posx = w,
+    .window_posy = h,
+  });
 }
 
-void _vgfx_os_window_callback_framebuffer_size(void *win, i32 w, i32 h) {
+void 
+_vgfx_os_window_callback_framebuffer_size(void *win, i32 w, i32 h) {
 
-  _vgfx_os_push_event(win,
-                      &(VGFX_OS_Event){
-                          .type = VGFX_OS_EVENT_TYPE_WINDOW_FRAMEBUFFER_SIZE,
-                          .window_posx = w,
-                          .window_posy = h,
-                      });
+  _vgfx_os_push_event(win, &(VGFX_OS_Event){
+    .type = VGFX_OS_EVENT_TYPE_WINDOW_FRAMEBUFFER_SIZE,
+    .window_posx = w,
+    .window_posy = h,
+  });
 
   // TODO: Handle this manually
   // glViewport(0, 0, w, h);
 }
 
-void _vgfx_os_window_callback_close(void *win) {
+void 
+_vgfx_os_window_callback_close(void *win) {
 
   _vgfx_os_push_event(win, &(VGFX_OS_Event){
-                               .type = VGFX_OS_EVENT_TYPE_WINDOW_CLOSE,
-                           });
+    .type = VGFX_OS_EVENT_TYPE_WINDOW_CLOSE,
+  });
 }
 
-void _vgfx_os_window_callback_cursor_pos(void *win, f64 x, f64 y) {
+void 
+_vgfx_os_window_callback_cursor_pos(void *win, f64 x, f64 y) {
 
   _vgfx_os_push_event(win, &(VGFX_OS_Event){
-                               .type = VGFX_OS_EVENT_TYPE_CURSOR_POS,
-                               .cursor_x = (f32)x,
-                               .cursor_y = (f32)y,
-                           });
+    .type = VGFX_OS_EVENT_TYPE_CURSOR_POS,
+    .cursor_x = (f32)x,
+    .cursor_y = (f32)y,
+  });
 }
 
-void _vgfx_os_window_callback_mouse_button(void *win, i32 button, i32 state,
-                                           i32 _m) {
+void 
+_vgfx_os_window_callback_mouse_button(void *win, i32 button, i32 state, i32 _m) {
+
   VGFX_UNUSED(_m);
 
   i32 type = (state == GLFW_RELEASE) ? VGFX_OS_EVENT_TYPE_MOUSE_BUTTON_RELEASE
                                      : VGFX_OS_EVENT_TYPE_MOUSE_BUTTON_PRESS;
 
   _vgfx_os_push_event(win, &(VGFX_OS_Event){
-                               .type = type,
-                               .mouse_button = button,
-                           });
+    .type = type,
+    .mouse_button = button,
+  });
 }
 
-void _vgfx_os_window_callback_char(void *win, u32 cp) {
+void 
+_vgfx_os_window_callback_char(void *win, u32 cp) {
   _vgfx_os_push_event(win, &(VGFX_OS_Event){
-                               .type = VGFX_OS_EVENT_TYPE_CHAR,
-                               .char_codepoint = cp,
-                           });
+    .type = VGFX_OS_EVENT_TYPE_CHAR,
+    .char_codepoint = cp,
+  });
 }
 
-void _vgfx_os_window_callback_key(void *win, i32 key, i32 sc, i32 state,
-                                  i32 _m) {
+void 
+_vgfx_os_window_callback_key(void *win, i32 key, i32 sc, i32 state, i32 _m) {
+
   VGFX_UNUSED(_m);
 
   // TODO: Calculate this with math instaed
@@ -234,8 +247,8 @@ void _vgfx_os_window_callback_key(void *win, i32 key, i32 sc, i32 state,
   }
 
   _vgfx_os_push_event(win, &(VGFX_OS_Event){
-                               .type = type,
-                               .key_code = key,
-                               .key_scancode = sc,
-                           });
+    .type = type,
+    .key_code = key,
+    .key_scancode = sc,
+  });
 }

@@ -45,13 +45,17 @@ struct VGFX_RD_Vertex {
   f32 col[4];
 };
 
-VGFX_RD_Pipeline *vgfx_rd_pipeline_new(VGFX_AS_AssetServer *as);
+VGFX_RD_Pipeline *
+vgfx_rd_pipeline_new(VGFX_AS_AssetServer *as);
 
-void vgfx_rd_piepline_free(VGFX_RD_Pipeline *pipeline);
+void 
+vgfx_rd_piepline_free(VGFX_RD_Pipeline *pipeline);
 
-void vgfx_rd_pipeline_begin(VGFX_RD_Pipeline *pipeline, VGFX_AS_Asset *shader);
+void 
+vgfx_rd_pipeline_begin(VGFX_RD_Pipeline *pipeline, VGFX_AS_Asset *shader);
 
-void vgfx_rd_pipeline_flush();
+void 
+vgfx_rd_pipeline_flush();
 
 // =============================================
 //
@@ -73,12 +77,17 @@ void vgfx_rd_pipeline_flush();
   }
 #endif
 
-void vgfx_rd_send_vert(f32 texture, vec3 pos, vec2 tex, vec4 col);
+void 
+vgfx_rd_send_vert(f32 texture, vec3 pos, vec2 tex, vec4 col);
 
-void vgfx_rd_send_quad(f32 texture, vec3 pos, vec2 scl, vec4 tex, vec4 col);
+void 
+vgfx_rd_send_quad(f32 texture, vec3 pos, vec2 scl, vec4 tex, vec4 col);
 
-void vgfx_rd_send_texture(VGFX_AS_Texture *handle, vec3 pos, vec2 scl, vec4 tex, vec4 col);
+void 
+vgfx_rd_send_texture(VGFX_AS_Texture *handle, vec3 pos, vec2 scl, vec4 tex, vec4 col);
 
-void vgfx_rd_send_text(VGFX_AS_Font *handle, const char* str, vec3 pos, vec4 col);
+void 
+vgfx_rd_send_text(VGFX_AS_Font *handle, const char* str, vec3 pos, vec4 col);
 
-vec2s vgfx_rd_font_render_size(VGFX_AS_Font *handle, const char *str, bool fh);
+vec2s 
+vgfx_rd_font_render_size(VGFX_AS_Font *handle, const char *str, bool fh);

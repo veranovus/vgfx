@@ -10,7 +10,8 @@ static VGFX_RD_Pipeline *s_rd_bound_pipeline;
 //
 // =============================================
 
-VGFX_RD_Pipeline *vgfx_rd_pipeline_new(VGFX_AS_AssetServer *as) {
+VGFX_RD_Pipeline *
+vgfx_rd_pipeline_new(VGFX_AS_AssetServer *as) {
 
   VGFX_ASSERT_NON_NULL(as);
 
@@ -86,7 +87,8 @@ VGFX_RD_Pipeline *vgfx_rd_pipeline_new(VGFX_AS_AssetServer *as) {
   return pipeline;
 }
 
-void vgfx_rd_piepline_free(VGFX_RD_Pipeline *pipeline) {
+void
+vgfx_rd_piepline_free(VGFX_RD_Pipeline *pipeline) {
 
   VGFX_ASSERT_NON_NULL(pipeline);
 
@@ -100,7 +102,8 @@ void vgfx_rd_piepline_free(VGFX_RD_Pipeline *pipeline) {
   free(pipeline);
 }
 
-void vgfx_rd_pipeline_begin(VGFX_RD_Pipeline *pipeline, VGFX_AS_Asset *shader) {
+void
+vgfx_rd_pipeline_begin(VGFX_RD_Pipeline *pipeline, VGFX_AS_Asset *shader) {
 
   VGFX_ASSERT_NON_NULL(pipeline);
 
@@ -124,7 +127,8 @@ void vgfx_rd_pipeline_begin(VGFX_RD_Pipeline *pipeline, VGFX_AS_Asset *shader) {
   s_rd_bound_pipeline = pipeline;
 }
 
-void vgfx_rd_pipeline_flush() {
+void
+vgfx_rd_pipeline_flush() {
 
   if (!s_rd_bound_pipeline->crn_vertex_count) {
     return;
@@ -173,7 +177,8 @@ void vgfx_rd_pipeline_flush() {
 //
 // =============================================
 
-void vgfx_rd_send_vert(f32 texture, vec3 pos, vec2 tex, vec4 col) {
+void
+vgfx_rd_send_vert(f32 texture, vec3 pos, vec2 tex, vec4 col) {
 
   if (s_rd_bound_pipeline->crn_vertex_count == s_rd_bound_pipeline->max_vertex_count) {
     VGFX_RD_Pipeline *tmp = s_rd_bound_pipeline;
@@ -207,7 +212,8 @@ void vgfx_rd_send_vert(f32 texture, vec3 pos, vec2 tex, vec4 col) {
   s_rd_bound_pipeline->crn_vertex_count += 1;
 }
 
-void vgfx_rd_send_quad(f32 texture, vec3 pos, vec2 scl, vec4 tex, vec4 col) {
+void
+vgfx_rd_send_quad(f32 texture, vec3 pos, vec2 scl, vec4 tex, vec4 col) {
 
   // Send vertices
   vec3 tpos = {pos[0], pos[1], pos[2]};
@@ -236,7 +242,8 @@ void vgfx_rd_send_quad(f32 texture, vec3 pos, vec2 scl, vec4 tex, vec4 col) {
   s_rd_bound_pipeline->crn_index_count += 6;
 }
 
-void vgfx_rd_send_texture(VGFX_AS_Texture *handle, vec3 pos, vec2 scl, vec4 tex, vec4 col) {
+void
+vgfx_rd_send_texture(VGFX_AS_Texture *handle, vec3 pos, vec2 scl, vec4 tex, vec4 col) {
 
   VGFX_DEBUG_ASSERT(handle, "Handle is NULL.");
 
@@ -282,15 +289,16 @@ render_quad:
   }
 }
 
-void vgfx_rd_send_text(VGFX_AS_Font *handle, const char* str, vec3 pos, vec4 col) {
+void
+vgfx_rd_send_text(VGFX_AS_Font *handle, const char* str, vec3 pos, vec4 col) {
 
   VGFX_DEBUG_ASSERT(handle, "Handle is NULL.");
 
   VGFX_AS_Texture tmp;
   tmp.handle = handle->handle;
 
-  usize len    = strlen(str);
   f32   offset = 0;
+  usize len    = strlen(str);
 
   for (usize i = 0; i < len; ++i) {
     _VGFX_AS_Glyph *glyph = &vstd_vector_get(
@@ -316,7 +324,8 @@ void vgfx_rd_send_text(VGFX_AS_Font *handle, const char* str, vec3 pos, vec4 col
   }
 }
 
-vec2s vgfx_rd_font_render_size(VGFX_AS_Font *handle, const char *str, bool fh) {
+vec2s
+vgfx_rd_font_render_size(VGFX_AS_Font *handle, const char *str, bool fh) {
   
   VGFX_DEBUG_ASSERT(handle, "Handle is NULL.");
 

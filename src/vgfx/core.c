@@ -11,7 +11,8 @@
 //
 // =============================================
 
-_Noreturn void _vgfx_abort(const char *file, i32 line, const char *msg, ...) {
+_Noreturn void 
+_vgfx_abort(const char *file, i32 line, const char *msg, ...) {
 
   fprintf(stderr, "Abort: ");
 
@@ -26,8 +27,8 @@ _Noreturn void _vgfx_abort(const char *file, i32 line, const char *msg, ...) {
   abort();
 }
 
-void _vgfx_assert_failed(const char *cond, const char *file, i32 line,
-                         const char *msg, ...) {
+void 
+_vgfx_assert_failed(const char *cond, const char *file, i32 line, const char *msg, ...) {
 
   fprintf(stderr, "Assertion failed: %s\nMessage: ", cond);
 
@@ -50,7 +51,8 @@ void _vgfx_assert_failed(const char *cond, const char *file, i32 line,
 //
 // =============================================
 
-void _vgfx_debug_print(const char *msg, ...) {
+void 
+_vgfx_debug_print(const char *msg, ...) {
 
   printf("Debug: ");
 
@@ -60,7 +62,8 @@ void _vgfx_debug_print(const char *msg, ...) {
   va_end(va_args);
 }
 
-void _vgfx_debug_warn(const char *msg, ...) {
+void 
+_vgfx_debug_warn(const char *msg, ...) {
 
   printf("Warning: ");
 

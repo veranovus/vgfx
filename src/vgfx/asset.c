@@ -12,13 +12,14 @@
 //
 // =============================================
 
-VGFX_AS_AssetServer *vgfx_as_asset_server_new() {
+VGFX_AS_AssetServer *
+vgfx_as_asset_server_new() {
 
   VGFX_AS_AssetServer *as =
       (VGFX_AS_AssetServer *)malloc(sizeof(VGFX_AS_AssetServer));
 
-  as->assets = vstd_map_new(VGFX_AS_AssetType, VSTD_Vector(VGFX_AS_Asset *),
-                            vstd_map_condition_isize);
+  as->assets = vstd_map_new(
+        VGFX_AS_AssetType, VSTD_Vector(VGFX_AS_Asset *), vstd_map_condition_isize);
 
   for (usize i = VGFX_ASSET_TYPE_UNKNOWN + 1; i < VGFX_ASSET_TYPE_LAST; ++i) {
     vstd_map_set(VGFX_AS_AssetType, VSTD_Vector(VGFX_AS_Asset *), as->assets, i,
@@ -28,7 +29,8 @@ VGFX_AS_AssetServer *vgfx_as_asset_server_new() {
   return as;
 }
 
-void vgfx_as_asset_server_free(VGFX_AS_AssetServer *as) {
+void 
+vgfx_as_asset_server_free(VGFX_AS_AssetServer *as) {
 
   VGFX_ASSERT_NON_NULL(as);
 
@@ -72,8 +74,9 @@ void vgfx_as_asset_server_free(VGFX_AS_AssetServer *as) {
   vstd_map_free(VGFX_AS_AssetType, VSTD_Vector(VGFX_AS_Asset *), as->assets);
 }
 
-VGFX_AS_Asset *vgfx_as_asset_server_load(VGFX_AS_AssetServer *as,
-                                         VGFX_AS_AssetDesc *desc) {
+VGFX_AS_Asset *
+vgfx_as_asset_server_load(VGFX_AS_AssetServer *as, VGFX_AS_AssetDesc *desc) {
+
   VGFX_ASSERT_NON_NULL(as);
   VGFX_ASSERT_NON_NULL(desc);
 
@@ -122,7 +125,8 @@ VGFX_AS_Asset *vgfx_as_asset_server_load(VGFX_AS_AssetServer *as,
   return asset;
 }
 
-void _vgfx_as_validate_asset_path(const char *path) {
+void 
+_vgfx_as_validate_asset_path(const char *path) {
 
   VSTD_String tmp = vstd_fs_read_file(path);
 
@@ -139,7 +143,8 @@ void _vgfx_as_validate_asset_path(const char *path) {
 //
 // =============================================
 
-void *_vgfx_as_load_texture(VGFX_AS_AssetDesc *desc) {
+void *
+_vgfx_as_load_texture(VGFX_AS_AssetDesc *desc) {
 
   VGFX_ASSERT_NON_NULL(desc);
   VGFX_ASSERT_NON_ZERO(desc->texture_wrap);
@@ -207,7 +212,8 @@ void *_vgfx_as_load_texture(VGFX_AS_AssetDesc *desc) {
   return handle;
 }
 
-void *_vgfx_as_load_font(VGFX_AS_AssetDesc *desc) {
+void *
+_vgfx_as_load_font(VGFX_AS_AssetDesc *desc) {
 
   VGFX_ASSERT_NON_NULL(desc);
   VGFX_ASSERT_NON_ZERO(desc->font_size);
@@ -320,7 +326,8 @@ void *_vgfx_as_load_font(VGFX_AS_AssetDesc *desc) {
   return font;
 }
 
-void *_vgfx_as_load_shader(VGFX_AS_AssetDesc *desc) {
+void *
+_vgfx_as_load_shader(VGFX_AS_AssetDesc *desc) {
   
   VGFX_ASSERT_NON_NULL(desc);
 
@@ -359,7 +366,8 @@ void *_vgfx_as_load_shader(VGFX_AS_AssetDesc *desc) {
   return handle;
 }
 
-void _vgfx_as_free_texture(VGFX_AS_Texture *handle) {
+void 
+_vgfx_as_free_texture(VGFX_AS_Texture *handle) {
 
   VGFX_ASSERT_NON_NULL(handle);
 
@@ -368,7 +376,8 @@ void _vgfx_as_free_texture(VGFX_AS_Texture *handle) {
   free(handle);
 }
 
-void _vgfx_as_free_font(VGFX_AS_Font *handle) {
+void 
+_vgfx_as_free_font(VGFX_AS_Font *handle) {
 
   VGFX_ASSERT_NON_NULL(handle);
 
@@ -379,7 +388,8 @@ void _vgfx_as_free_font(VGFX_AS_Font *handle) {
   free(handle);
 }
 
-void _vgfx_as_free_shader(VGFX_AS_Shader *handle) {
+void 
+_vgfx_as_free_shader(VGFX_AS_Shader *handle) {
   
   VGFX_ASSERT_NON_NULL(handle);
 
@@ -388,7 +398,8 @@ void _vgfx_as_free_shader(VGFX_AS_Shader *handle) {
   free(handle);
 }
 
-u32 _vgfx_as_compile_shader(u32 type, const char** source) {
+u32 
+_vgfx_as_compile_shader(u32 type, const char** source) {
 
   VGFX_ASSERT_NON_NULL(source);
 
@@ -442,7 +453,8 @@ u32 _vgfx_as_compile_shader(u32 type, const char** source) {
   return handle;
 }
 
-u32 _vgfx_as_compile_shader_program(VGFX_AS_ShaderHandle *vec, usize len) {
+u32 
+_vgfx_as_compile_shader_program(VGFX_AS_ShaderHandle *vec, usize len) {
   
   VGFX_AS_ShaderProgramHandle handle = glCreateProgram();
 

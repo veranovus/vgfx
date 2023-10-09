@@ -2,7 +2,7 @@
 
 Simple multimedia framework written in C99.
 
-> Version 0.3.6
+> Version 0.3.7
 
 ## Changelog
 

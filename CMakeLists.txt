@@ -1,12 +1,12 @@
 # Project configuration
 cmake_minimum_required(VERSION 3.26)
-project(vgfx VERSION 0.3.6 LANGUAGES C)
+project(vgfx VERSION 0.3.7 LANGUAGES C)
 
 # Project settings
 set(TARGET_NAME vgfx)
 set(CMAKE_C_STANDARD 99)
-# set(CMAKE_BUILD_TYPE "Debug")
-set(CMAKE_BUILD_TYPE "Release")
+set(CMAKE_BUILD_TYPE "Debug")
+# set(CMAKE_BUILD_TYPE "Release")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include_directories(vendor/)
 

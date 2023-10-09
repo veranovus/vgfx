@@ -11,7 +11,8 @@ static VGFX_AS_ShaderProgramHandle s_gl_bound_shader;
 //
 // =============================================
 
-VGFX_GL_Buffer vgfx_gl_buffer_create(u32 type) {
+VGFX_GL_Buffer 
+vgfx_gl_buffer_create(u32 type) {
 
   VGFX_GL_Buffer buff;
   glGenBuffers(1, &buff.handle);
@@ -22,17 +23,19 @@ VGFX_GL_Buffer vgfx_gl_buffer_create(u32 type) {
   return buff;
 }
 
-void vgfx_gl_buffer_delete(VGFX_GL_Buffer *buff) {
+void 
+vgfx_gl_buffer_delete(VGFX_GL_Buffer *buff) {
 
   VGFX_ASSERT_NON_NULL(buff);
 
   glDeleteBuffers(1, &buff->handle);
 
   buff->handle = VGFX_GL_INVALID_HANDLE;
-  buff->size = 0;
+  buff->size   = 0;
 }
 
-void vgfx_gl_buffer_data(VGFX_GL_Buffer *buff, u32 usage, usize size, void *data) {
+void 
+vgfx_gl_buffer_data(VGFX_GL_Buffer *buff, u32 usage, usize size, void *data) {
 
   VGFX_ASSERT_NON_NULL(buff);
 
@@ -43,7 +46,8 @@ void vgfx_gl_buffer_data(VGFX_GL_Buffer *buff, u32 usage, usize size, void *data
   glBindBuffer(buff->type, VGFX_GL_INVALID_HANDLE);
 }
 
-void vgfx_gl_buffer_sub_data(VGFX_GL_Buffer *buff, usize offset, usize size, void *data) {
+void 
+vgfx_gl_buffer_sub_data(VGFX_GL_Buffer *buff, usize offset, usize size, void *data) {
   
   VGFX_ASSERT_NON_NULL(buff);
 
@@ -52,7 +56,8 @@ void vgfx_gl_buffer_sub_data(VGFX_GL_Buffer *buff, usize offset, usize size, voi
   glBindBuffer(buff->type, VGFX_GL_INVALID_HANDLE);
 }
 
-VGFX_GL_VertexArray vgfx_gl_vertex_array_create() {
+VGFX_GL_VertexArray 
+vgfx_gl_vertex_array_create() {
   
   VGFX_GL_VertexArray va;
   glGenVertexArrays(1, &va.handle);
@@ -62,7 +67,8 @@ VGFX_GL_VertexArray vgfx_gl_vertex_array_create() {
   return va;
 }
 
-void vgfx_gl_vertex_array_delete(VGFX_GL_VertexArray *va) {
+void 
+vgfx_gl_vertex_array_delete(VGFX_GL_VertexArray *va) {
   
   VGFX_ASSERT_NON_NULL(va);
 
@@ -71,7 +77,8 @@ void vgfx_gl_vertex_array_delete(VGFX_GL_VertexArray *va) {
   va->handle = VGFX_GL_INVALID_HANDLE;
 }
 
-void vgfx_gl_vertex_array_layout(VGFX_GL_VertexArray *va, VGFX_GL_VertexAttribLayout* layout) {
+void 
+vgfx_gl_vertex_array_layout(VGFX_GL_VertexArray *va, VGFX_GL_VertexAttribLayout* layout) {
   
   VGFX_ASSERT_NON_NULL(va);
   VGFX_ASSERT_NON_NULL(layout);
@@ -80,7 +87,7 @@ void vgfx_gl_vertex_array_layout(VGFX_GL_VertexArray *va, VGFX_GL_VertexAttribLa
   // Calculate stride
   usize stride = 0;
   usize format = 0;
-  usize tsize = 0;
+  usize tsize  = 0;
 
   for (usize i = 0; i < VGFX_GL_MAX_ATTRIBUTES; ++i) {
     VGFX_GL_VertexAttrib *attrib = &layout->attribs[i];
@@ -134,7 +141,8 @@ void vgfx_gl_vertex_array_layout(VGFX_GL_VertexArray *va, VGFX_GL_VertexAttribLa
   glBindBuffer(layout->buffer.type, VGFX_GL_INVALID_HANDLE);
 }
 
-void vgfx_gl_vertex_array_index_buffer(VGFX_GL_VertexArray *va, VGFX_GL_Buffer *buff) {
+void 
+vgfx_gl_vertex_array_index_buffer(VGFX_GL_VertexArray *va, VGFX_GL_Buffer *buff) {
   
   VGFX_ASSERT_NON_NULL(va);
   VGFX_ASSERT_NON_NULL(buff);
@@ -151,14 +159,16 @@ void vgfx_gl_vertex_array_index_buffer(VGFX_GL_VertexArray *va, VGFX_GL_Buffer *
   glBindBuffer(buff->type, VGFX_GL_INVALID_HANDLE);
 }
 
-void vgfx_gl_vertex_array_reset(VGFX_GL_VertexArray *va) {
+void 
+vgfx_gl_vertex_array_reset(VGFX_GL_VertexArray *va) {
 
   VGFX_ASSERT_NON_NULL(va);
 
   va->_cached_id = 0;
 }
 
-usize _vgfx_gl_get_format_size(u32 format) {
+usize 
+_vgfx_gl_get_format_size(u32 format) {
   switch (format) {
   case GL_BYTE:
     return sizeof(i8);
@@ -191,7 +201,8 @@ usize _vgfx_gl_get_format_size(u32 format) {
 //
 // =============================================
 
-void vgfx_gl_bind_texture_handle(VGFX_AS_TextureHandle handle, u32 slot) {
+void 
+vgfx_gl_bind_texture_handle(VGFX_AS_TextureHandle handle, u32 slot) {
   
   VGFX_ASSERT(handle, "Invalid handle.");
 
@@ -199,13 +210,15 @@ void vgfx_gl_bind_texture_handle(VGFX_AS_TextureHandle handle, u32 slot) {
   glBindTexture(GL_TEXTURE_2D, handle);
 }
 
-void vgfx_gl_unbind_texture_handle(u32 slot) {
+void 
+vgfx_gl_unbind_texture_handle(u32 slot) {
 
   glActiveTexture(GL_TEXTURE0 + slot);
   glBindTexture(GL_TEXTURE_2D, VGFX_GL_INVALID_HANDLE);
 }
 
-void vgfx_gl_bind_shader_program(VGFX_AS_ShaderProgramHandle handle) {
+void 
+vgfx_gl_bind_shader_program(VGFX_AS_ShaderProgramHandle handle) {
   
   VGFX_ASSERT(handle, "Invalid handle.");
 
@@ -214,7 +227,8 @@ void vgfx_gl_bind_shader_program(VGFX_AS_ShaderProgramHandle handle) {
   glUseProgram(handle);
 }
 
-void vgfx_gl_unbind_shader_program() {
+void 
+vgfx_gl_unbind_shader_program() {
 
   s_gl_bound_shader = VGFX_GL_INVALID_HANDLE;
 
@@ -229,7 +243,8 @@ void vgfx_gl_unbind_shader_program() {
 //
 // =============================================
 
-void vgfx_gl_uniform_fv(const char *name, usize count, const f32 *v) {
+void 
+vgfx_gl_uniform_fv(const char *name, usize count, const f32 *v) {
 
   i32 location = glGetUniformLocation(s_gl_bound_shader, name);
 
@@ -254,7 +269,8 @@ void vgfx_gl_uniform_fv(const char *name, usize count, const f32 *v) {
   }
 }
 
-void vgfx_gl_uniform_iv(const char* name, usize count, const i32 *v) {
+void 
+vgfx_gl_uniform_iv(const char* name, usize count, const i32 *v) {
   
   i32 location = glGetUniformLocation(s_gl_bound_shader, name);
 
@@ -279,7 +295,8 @@ void vgfx_gl_uniform_iv(const char* name, usize count, const i32 *v) {
   }
 }
 
-void vgfx_gl_uniform_uv(const char* name, usize count, const u32 *v) {
+void 
+vgfx_gl_uniform_uv(const char* name, usize count, const u32 *v) {
   
   i32 location = glGetUniformLocation(s_gl_bound_shader, name);
 
@@ -304,7 +321,8 @@ void vgfx_gl_uniform_uv(const char* name, usize count, const u32 *v) {
   }
 }
 
-void vgfx_gl_uniform_mat2fv(const char *name, usize count, bool trans, const f32 *v) {
+void 
+vgfx_gl_uniform_mat2fv(const char *name, usize count, bool trans, const f32 *v) {
 
   i32 location = glGetUniformLocation(s_gl_bound_shader, name);
 
@@ -313,8 +331,8 @@ void vgfx_gl_uniform_mat2fv(const char *name, usize count, bool trans, const f32
   glUniformMatrix2fv(location, count, trans, v);
 }
 
-
-void vgfx_gl_uniform_mat3fv(const char *name, usize count, bool trans, const f32 *v) {
+void 
+vgfx_gl_uniform_mat3fv(const char *name, usize count, bool trans, const f32 *v) {
 
   i32 location = glGetUniformLocation(s_gl_bound_shader, name);
 
@@ -323,7 +341,8 @@ void vgfx_gl_uniform_mat3fv(const char *name, usize count, bool trans, const f32
   glUniformMatrix3fv(location, count, trans, v);
 }
 
-void vgfx_gl_uniform_mat4fv(const char *name, usize count, bool trans, const f32 *v) {
+void 
+vgfx_gl_uniform_mat4fv(const char *name, usize count, bool trans, const f32 *v) {
 
   i32 location = glGetUniformLocation(s_gl_bound_shader, name);
 
@@ -332,7 +351,8 @@ void vgfx_gl_uniform_mat4fv(const char *name, usize count, bool trans, const f32
   glUniformMatrix4fv(location, count, trans, v);
 }
 
-void vgfx_gl_uniform_mat2x3fv(const char *name, usize count, bool trans, const f32 *v) {
+void 
+vgfx_gl_uniform_mat2x3fv(const char *name, usize count, bool trans, const f32 *v) {
 
   i32 location = glGetUniformLocation(s_gl_bound_shader, name);
 
@@ -341,7 +361,8 @@ void vgfx_gl_uniform_mat2x3fv(const char *name, usize count, bool trans, const f
   glUniformMatrix2x3fv(location, count, trans, v);
 }
 
-void vgfx_gl_uniform_mat3x2fv(const char *name, usize count, bool trans, const f32 *v) {
+void 
+vgfx_gl_uniform_mat3x2fv(const char *name, usize count, bool trans, const f32 *v) {
 
   i32 location = glGetUniformLocation(s_gl_bound_shader, name);
 
@@ -350,7 +371,8 @@ void vgfx_gl_uniform_mat3x2fv(const char *name, usize count, bool trans, const f
   glUniformMatrix3x2fv(location, count, trans, v);
 }
 
-void vgfx_gl_uniform_mat2x4fv(const char *name, usize count, bool trans, const f32 *v) {
+void 
+vgfx_gl_uniform_mat2x4fv(const char *name, usize count, bool trans, const f32 *v) {
 
   i32 location = glGetUniformLocation(s_gl_bound_shader, name);
 
@@ -359,7 +381,8 @@ void vgfx_gl_uniform_mat2x4fv(const char *name, usize count, bool trans, const f
   glUniformMatrix2x4fv(location, count, trans, v);
 }
 
-void vgfx_gl_uniform_mat4x2fv(const char *name, usize count, bool trans, const f32 *v) {
+void 
+vgfx_gl_uniform_mat4x2fv(const char *name, usize count, bool trans, const f32 *v) {
 
   i32 location = glGetUniformLocation(s_gl_bound_shader, name);
 
@@ -368,7 +391,8 @@ void vgfx_gl_uniform_mat4x2fv(const char *name, usize count, bool trans, const f
   glUniformMatrix4x2fv(location, count, trans, v);
 }
 
-void vgfx_gl_uniform_mat3x4fv(const char *name, usize count, bool trans, const f32 *v) {
+void 
+vgfx_gl_uniform_mat3x4fv(const char *name, usize count, bool trans, const f32 *v) {
 
   i32 location = glGetUniformLocation(s_gl_bound_shader, name);
 
@@ -377,7 +401,8 @@ void vgfx_gl_uniform_mat3x4fv(const char *name, usize count, bool trans, const f
   glUniformMatrix3x4fv(location, count, trans, v);
 }
 
-void vgfx_gl_uniform_mat4x3fv(const char *name, usize count, bool trans, const f32 *v) {
+void 
+vgfx_gl_uniform_mat4x3fv(const char *name, usize count, bool trans, const f32 *v) {
 
   i32 location = glGetUniformLocation(s_gl_bound_shader, name);
 

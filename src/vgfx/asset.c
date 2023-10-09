@@ -236,6 +236,8 @@ void *_vgfx_as_load_font(VGFX_AS_AssetDesc *desc) {
   font->range[0] = desc->font_range[0];
   font->range[1] = desc->font_range[1];
 
+  font->_average_glyph_height = 0;
+
   // Calculate font size
   for (u32 i = font->range[0]; i < font->range[1]; ++i) {
     if (FT_Load_Char(face, i, load_flags)) {
@@ -275,11 +277,12 @@ void *_vgfx_as_load_font(VGFX_AS_AssetDesc *desc) {
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
   // Load glyphs
+  f32 a_height = 0.0f;
   i32 x_offset = 0;
   for (i32 i = 0; i < cap; ++i) {
     _VGFX_AS_Glyph *glyph = &vstd_vector_get(_VGFX_AS_Glyph, font->glyphs, i);
 
-    if (FT_Load_Char(face, i, load_flags)) {
+    if (FT_Load_Char(face, i + font->range[0], load_flags)) {
       fprintf(stderr, "Failed to load glyph for the character, `%d`.\n", i);
       abort();
     }
@@ -297,13 +300,15 @@ void *_vgfx_as_load_font(VGFX_AS_AssetDesc *desc) {
     glyph->brng[1] = face->glyph->bitmap_top;
     glyph->offset = (f32)x_offset / (f32)font->size[0];
 
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexSubImage2D(GL_TEXTURE_2D, 0, x_offset, 0, glyph->size[0],
                     glyph->size[1], GL_RED, GL_UNSIGNED_BYTE,
                     face->glyph->bitmap.buffer);
 
+    a_height += glyph->brng[1];
     x_offset += glyph->size[0];
   }
+
+  font->_average_glyph_height = a_height / cap;
 
   // Unbind texture
   glBindTexture(GL_TEXTURE_2D, 0);

@@ -121,6 +121,7 @@ struct VGFX_AS_Font {
   f32 size[2];
   u32 range[2];
   VSTD_Vector(_VGFX_AS_Glyph) glyphs;
+  usize _average_glyph_height;
 };
 
 typedef u32 VGFX_AS_ShaderHandle;

@@ -257,7 +257,9 @@ void vgfx_rd_send_text(VGFX_AS_Font *handle, const char* str, vec3 pos, vec4 col
   f32 offset = 0;
 
   for (usize i = 0; i < len; ++i) {
-    _VGFX_AS_Glyph *glyph = &vstd_vector_get(_VGFX_AS_Glyph, handle->glyphs, (usize)str[i]);
+    _VGFX_AS_Glyph *glyph = &vstd_vector_get(
+      _VGFX_AS_Glyph, handle->glyphs, (usize)str[i] - handle->range[0]
+    );
 
     vec3 tpos = {
       pos[0] + offset + glyph->brng[0], 
@@ -278,7 +280,7 @@ void vgfx_rd_send_text(VGFX_AS_Font *handle, const char* str, vec3 pos, vec4 col
   }
 }
 
-vec2s vgfx_rd_font_render_size(VGFX_AS_Font *handle, const char *str) {
+vec2s vgfx_rd_font_render_size(VGFX_AS_Font *handle, const char *str, bool fh) {
   
   VGFX_DEBUG_ASSERT(handle, "Handle is NULL.");
 
@@ -291,13 +293,19 @@ vec2s vgfx_rd_font_render_size(VGFX_AS_Font *handle, const char *str) {
   f32 h = 0;
 
   for (usize i = 0; i < len; ++i) {
-    _VGFX_AS_Glyph *glyph = &vstd_vector_get(_VGFX_AS_Glyph, handle->glyphs, (usize)str[i]);
+    _VGFX_AS_Glyph *glyph = &vstd_vector_get(
+      _VGFX_AS_Glyph, handle->glyphs, (usize)str[i] - handle->range[0]
+    );
 
     if (glyph->size[0] > h) {
       h = glyph->size[0];
     }
 
     w += glyph->advn[0];
+  }
+
+  if (fh) {
+    h = handle->_average_glyph_height;
   }
 
   return (vec2s) {.x = w, .y = h};

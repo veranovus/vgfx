@@ -151,7 +151,7 @@ int main(i32 argc, char *argv[]) {
       fps = fps_counter;
       fps_counter = 0;
       vstd_string_free(&fps_str);
-      fps_str = vstd_string_format("FPS : %04u", fps);
+      fps_str = vstd_string_format("fps : %04u", fps);
     }
 
     VSTD_Vector(VGFX_OS_Event) events = vgfx_os_events(win);
@@ -235,7 +235,7 @@ int main(i32 argc, char *argv[]) {
     VGFX_AS_Font *fh;
     VGFX_ASSET_DEBUG_CAST(font, VGFX_ASSET_TYPE_FONT, fh);
 
-    vec2s tsize = vgfx_rd_font_render_size(fh, fps_str.ptr);
+    vec2s tsize = vgfx_rd_font_render_size(fh, fps_str.ptr, true);
 
     vgfx_rd_send_text(
       fh, fps_str.ptr, 

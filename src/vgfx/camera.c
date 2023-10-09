@@ -38,9 +38,6 @@ void vgfx_camera_free(VGFX_Camera *camera) { free(camera); }
 void vgfx_camera_update_projection(VGFX_Camera *camera, f32 fov, f32 width,
                                    f32 height, f32 near, f32 far,
                                    VGFX_CameraMode mode) {
-  f32 w = width / 2.0f;
-  f32 h = height / 2.0f;
-
   camera->fov = fov;
   camera->aspect_ratio = width / height;
   camera->near = near;
@@ -55,7 +52,7 @@ void vgfx_camera_update_projection(VGFX_Camera *camera, f32 fov, f32 width,
     camera->position[2] = 3.0f;
     break;
   case VGFX_CameraModeOrthographic:
-    glm_ortho(-w, w, -h, h, camera->near, camera->far, camera->projection);
+    glm_ortho(0, width, 0, height, camera->near, camera->far, camera->projection);
 
     camera->position[2] = camera->far - 0.1f;
     break;

@@ -16,7 +16,9 @@ const char *BASE_VERT_SHADER_PATH = "res/shader/base.vert";
 const char *TEXT_FRAG_SHADER_PATH = "res/shader/text.frag";
 const char *TEXT_VERT_SHADER_PATH = "res/shader/text.vert";
 
-const char *TEST_FONT_PATH = "res/font/FiraCode-Medium.ttf";
+const char *TEST_FONT_PATH = "res/font/Roboto-Regular.ttf";
+// const char *TEST_FONT_PATH = "res/font/FiraCode-Regular.ttf";
+// const char *TEST_FONT_PATH = "res/font/Retro-Gaming.ttf";
 const char *TEST_TEXTURE_PATH = "res/bunny.png";
 
 static VGFX_Camera *s_camera = NULL;
@@ -50,7 +52,7 @@ void spawn_bunny(VSTD_Vector(Object) *objs, f32 x, f32 y) {
       objs,
       ((Object){
         .pos = {x, y, 0.0f},
-        .scl = {25.0f, 25.0f, 1.0f},
+        .scl = {36.0f, 36.0f, 1.0f},
         .col = {r, g, b, 1.0f},
         .dir = {dirx, diry},
     }));
@@ -94,9 +96,10 @@ int main(i32 argc, char *argv[]) {
   VGFX_AS_Asset *font = vgfx_as_asset_server_load(asset_server, &(VGFX_AS_AssetDesc){
     .type = VGFX_ASSET_TYPE_FONT,
     .font_path = TEST_FONT_PATH,
-    .font_range = { 32, 128 },
-    .font_size = 24,
     .font_filter = GL_LINEAR,
+    // .font_filter = GL_NEAREST,
+    .font_range = { 32, 128 },
+    .font_size = 32,
   });
 
   // Load shader programs
@@ -124,7 +127,7 @@ int main(i32 argc, char *argv[]) {
 
   VSTD_Vector(Object) objs = vstd_vector_with_capacity(Object, MAX_BUNNY);
 
-  spawn_bunny(&objs, 0, 0);
+  spawn_bunny(&objs, WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT / 2.0f);
 
   bool run = true;
   bool spawn = false;
@@ -141,7 +144,6 @@ int main(i32 argc, char *argv[]) {
     dt = time - last_frame;
     last_frame = time;
 
-
     fps_timer += dt;
     fps_counter += 1;
     if (fps_timer > 1.0f) {
@@ -150,7 +152,6 @@ int main(i32 argc, char *argv[]) {
       fps_counter = 0;
       vstd_string_free(&fps_str);
       fps_str = vstd_string_format("FPS : %04u", fps);
-      printf("== CNT: %lu\n", objs.len);
     }
 
     VSTD_Vector(VGFX_OS_Event) events = vgfx_os_events(win);
@@ -170,16 +171,15 @@ int main(i32 argc, char *argv[]) {
       f64 x, y;
       glfwGetCursorPos((void*)win, &x, &y);
 
-      x -= (WINDOW_WIDTH / 2.0f); 
-      y = (WINDOW_HEIGHT - y) - (WINDOW_HEIGHT / 2.0f);
+      y = WINDOW_HEIGHT - y;
   
       spawn_bunny(&objs, x, y);
 
       spawn = false;
     }
 
-    f32 ww = WINDOW_WIDTH / 2.0f;
-    f32 wh = WINDOW_HEIGHT / 2.0f;
+    f32 ww = WINDOW_WIDTH;
+    f32 wh = WINDOW_HEIGHT;
     vec2 tmp;
     const f32 speed = 100.0f * dt;
 
@@ -188,13 +188,13 @@ int main(i32 argc, char *argv[]) {
 
       glm_vec2_scale(obj->dir, speed, tmp);
 
-      if (obj->pos[0] + tmp[0] < -ww || obj->pos[0] + tmp[0] > ww) {
+      if (obj->pos[0] + tmp[0] < 0 || obj->pos[0] + obj->scl[0] + tmp[0] > ww) {
         obj->dir[0] = -obj->dir[0];
       } else {
         obj->pos[0] += tmp[0];
       }
 
-      if (obj->pos[1] + tmp[1] < -wh || obj->pos[1] + tmp[1] > wh) {
+      if (obj->pos[1] + tmp[1] < 0 || obj->pos[1] + obj->scl[1] + tmp[1] > wh) {
         obj->dir[1] = -obj->dir[1];
       } else {
         obj->pos[1] += tmp[1];
@@ -227,7 +227,6 @@ int main(i32 argc, char *argv[]) {
 
     vgfx_rd_pipeline_flush();
 
-
     vgfx_rd_pipeline_begin(pipeline, text_shader);
 
     vgfx_gl_uniform_fv("u_time", 1, (f32[1]){(f32)time});
@@ -236,9 +235,11 @@ int main(i32 argc, char *argv[]) {
     VGFX_AS_Font *fh;
     VGFX_ASSET_DEBUG_CAST(font, VGFX_ASSET_TYPE_FONT, fh);
 
+    vec2s tsize = vgfx_rd_font_render_size(fh, fps_str.ptr);
+
     vgfx_rd_send_text(
       fh, fps_str.ptr, 
-      (vec3){0.0f, (WINDOW_HEIGHT / 2.0f) - 75.0f, 100.0f}, 
+      (vec3){0.0f, (f32)WINDOW_HEIGHT - tsize.y, 100.0f}, 
       (vec4){1.0f, 1.0f, 1.0f, 1.0f}
     );
 

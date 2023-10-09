@@ -277,3 +277,28 @@ void vgfx_rd_send_text(VGFX_AS_Font *handle, const char* str, vec3 pos, vec4 col
     offset += glyph->advn[0];
   }
 }
+
+vec2s vgfx_rd_font_render_size(VGFX_AS_Font *handle, const char *str) {
+  
+  VGFX_DEBUG_ASSERT(handle, "Handle is NULL.");
+
+  VGFX_AS_Texture tmp;
+  tmp.handle = handle->handle;
+
+  usize len = strlen(str);
+
+  f32 w = 0;
+  f32 h = 0;
+
+  for (usize i = 0; i < len; ++i) {
+    _VGFX_AS_Glyph *glyph = &vstd_vector_get(_VGFX_AS_Glyph, handle->glyphs, (usize)str[i]);
+
+    if (glyph->size[0] > h) {
+      h = glyph->size[0];
+    }
+
+    w += glyph->advn[0];
+  }
+
+  return (vec2s) {.x = w, .y = h};
+}

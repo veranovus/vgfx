@@ -69,3 +69,5 @@ void vgfx_rd_send_quad(f32 texture, vec3 pos, vec2 scl, vec4 tex, vec4 col);
 void vgfx_rd_send_texture(VGFX_AS_Texture *handle, vec3 pos, vec2 scl, vec4 tex, vec4 col);
 
 void vgfx_rd_send_text(VGFX_AS_Font *handle, const char* str, vec3 pos, vec4 col);
+
+vec2s vgfx_rd_font_render_size(VGFX_AS_Font *handle, const char *str);

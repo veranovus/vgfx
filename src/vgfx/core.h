@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cglm/cglm.h>
+#include <cglm/struct.h>
 #include <glad/glad.h>
 #include <glfw/glfw3.h>
 #include <vstd/vstd.h>

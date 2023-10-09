@@ -297,6 +297,7 @@ void *_vgfx_as_load_font(VGFX_AS_AssetDesc *desc) {
     glyph->brng[1] = face->glyph->bitmap_top;
     glyph->offset = (f32)x_offset / (f32)font->size[0];
 
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexSubImage2D(GL_TEXTURE_2D, 0, x_offset, 0, glyph->size[0],
                     glyph->size[1], GL_RED, GL_UNSIGNED_BYTE,
                     face->glyph->bitmap.buffer);

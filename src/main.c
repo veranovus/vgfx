@@ -52,7 +52,7 @@ void spawn_bunny(VSTD_Vector(Object) *objs, f32 x, f32 y, usize num) {
       objs,
       ((Object){
         .pos = {x, y, 0.0f},
-        .scl = {36.0f, 36.0f, 1.0f},
+        .scl = {32.0f, 32.0f, 1.0f},
         .col = {r, g, b, 1.0f},
         .dir = {dirx + smodx, diry + smody},
     }));
@@ -132,11 +132,15 @@ int main(i32 argc, char *argv[]) {
   bool run = true;
   bool spawn = false;
 
-  VSTD_String fps_str = vstd_string_from("FPS: 0");
+  f32 ft[10] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+  usize ft_counter = 0;
+
+  VSTD_String frm_str = vstd_string_from("FRM: 0.0 ms");
   VSTD_String cnt_str = vstd_string_from("CNT: 0");
 
   volatile u32 fps_counter, fps;
   volatile f64 fps_timer = 0.0f;
+  volatile f64 frm_timer = 0.0f;
   volatile f64 dt, last_frame;
   while (run) {
     // Time and delta time
@@ -151,9 +155,31 @@ int main(i32 argc, char *argv[]) {
       fps_timer = 0;
       fps = fps_counter;
       fps_counter = 0;
-      vstd_string_free(&fps_str);
-      fps_str = vstd_string_format("FPS: %u", fps);
+
+      printf("FPS: %u\n", fps);
+
+      vstd_string_free(&cnt_str);
       cnt_str = vstd_string_format("CNT: %u", objs.len);
+    }
+
+    ft[ft_counter] = dt;
+    ft_counter += 1;
+    if (ft_counter >= 10) {
+      ft_counter = 0;
+    }
+
+    frm_timer += dt;
+    if (frm_timer > 0.1f) {
+      frm_timer = 0.0f;
+
+      f32 aft = 0.0f;
+      for (usize i = 0; i < 10; ++i) {
+        aft += ft[i];
+      }
+      aft /= 10.0f;
+
+      vstd_string_free(&frm_str);
+      frm_str = vstd_string_format("FRM: %.2f ms", aft * 1000);
     }
 
     VSTD_Vector(VGFX_OS_Event) events = vgfx_os_events(win);
@@ -237,11 +263,11 @@ int main(i32 argc, char *argv[]) {
     VGFX_AS_Font *fh;
     VGFX_ASSET_DEBUG_CAST(font, VGFX_ASSET_TYPE_FONT, fh);
 
-    vec2s tsize0 = vgfx_rd_font_render_size(fh, fps_str.ptr, true);
+    vec2s tsize0 = vgfx_rd_font_render_size(fh, frm_str.ptr, true);
     vec2s tsize1 = vgfx_rd_font_render_size(fh, cnt_str.ptr, true);
 
     vgfx_rd_send_text(
-      fh, fps_str.ptr, 
+      fh, frm_str.ptr, 
       (vec3){0.0f, (f32)WINDOW_HEIGHT - tsize0.y, 100.0f}, 
       (vec4){1.0f, 1.0f, 1.0f, 1.0f}
     );

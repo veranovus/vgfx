@@ -9,7 +9,7 @@
 
 const usize WINDOW_WIDTH = 800;
 const usize WINDOW_HEIGHT = 600;
-const char *WINDOW_TITLE = "cgame";
+const char *WINDOW_TITLE = "vgfx";
 
 const char *BASE_FRAG_SHADER_PATH = "res/shader/base.frag";
 const char *BASE_VERT_SHADER_PATH = "res/shader/base.vert";
@@ -132,7 +132,7 @@ int main(i32 argc, char *argv[]) {
   bool run = true;
   bool spawn = false;
 
-  VSTD_String fps_str = vstd_string_format("FPS : %04u", 0);
+  VSTD_String fps_str = vstd_string_format("FPS: %04u", 0);
 
   volatile u32 fps_counter, fps;
   volatile f64 fps_timer = 0.0f;
@@ -151,7 +151,7 @@ int main(i32 argc, char *argv[]) {
       fps = fps_counter;
       fps_counter = 0;
       vstd_string_free(&fps_str);
-      fps_str = vstd_string_format("fps : %04u", fps);
+      fps_str = vstd_string_format("FPS: %04u", fps);
     }
 
     VSTD_Vector(VGFX_OS_Event) events = vgfx_os_events(win);

@@ -16,8 +16,8 @@ const char *BASE_VERT_SHADER_PATH = "res/shader/base.vert";
 const char *TEXT_FRAG_SHADER_PATH = "res/shader/text.frag";
 const char *TEXT_VERT_SHADER_PATH = "res/shader/text.vert";
 
-const char *TEST_FONT_PATH = "res/font/Roboto-Regular.ttf";
-// const char *TEST_FONT_PATH = "res/font/FiraCode-Regular.ttf";
+const char *TEST_FONT_PATH = "res/font/JetBrainsMono-Regular.ttf";
+// const char *TEST_FONT_PATH = "res/font/Roboto-Regular.ttf";
 // const char *TEST_FONT_PATH = "res/font/Retro-Gaming.ttf";
 const char *TEST_TEXTURE_PATH = "res/bunny.png";
 
@@ -30,14 +30,14 @@ typedef struct Object {
   vec2 dir;
 } Object;
 
-void spawn_bunny(VSTD_Vector(Object) *objs, f32 x, f32 y) {
-  static bool first = true;
+void spawn_bunny(VSTD_Vector(Object) *objs, f32 x, f32 y, usize num) {
 
-  usize num = (first) ? 10 : 10000;
-
-  first = false;
-  
   for (usize i = 0; i < num; ++i) {
+    f32 smodx = (rand() % 100 < 50) ? (rand() % 1000) / -1000.0f
+                                    : (rand() % 1000) / 1000.0f;
+    f32 smody = (rand() % 100 < 50) ? (rand() % 1000) / -1000.0f
+                                    : (rand() % 1000) / 1000.0f;
+    
     f32 dirx = (rand() % 100 < 50) ? (rand() % 100) / -100.0f
                                    : (rand() % 100) / 100.0f;
     f32 diry = (rand() % 100 < 50) ? (rand() % 100) / -100.0f
@@ -48,13 +48,13 @@ void spawn_bunny(VSTD_Vector(Object) *objs, f32 x, f32 y) {
     f32 b = (f32)(rand() % 255 + 1) / 255.0f;
 
     vstd_vector_push(
-      Object, 
+      Object,
       objs,
       ((Object){
         .pos = {x, y, 0.0f},
         .scl = {36.0f, 36.0f, 1.0f},
         .col = {r, g, b, 1.0f},
-        .dir = {dirx, diry},
+        .dir = {dirx + smodx, diry + smody},
     }));
   }
 }
@@ -127,12 +127,13 @@ int main(i32 argc, char *argv[]) {
 
   VSTD_Vector(Object) objs = vstd_vector_with_capacity(Object, MAX_BUNNY);
 
-  spawn_bunny(&objs, WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT / 2.0f);
+  spawn_bunny(&objs, WINDOW_WIDTH / 2.0f, WINDOW_HEIGHT / 2.0f, 10000);
 
   bool run = true;
   bool spawn = false;
 
-  VSTD_String fps_str = vstd_string_format("FPS: %04u", 0);
+  VSTD_String fps_str = vstd_string_from("FPS: 0");
+  VSTD_String cnt_str = vstd_string_from("CNT: 0");
 
   volatile u32 fps_counter, fps;
   volatile f64 fps_timer = 0.0f;
@@ -151,7 +152,8 @@ int main(i32 argc, char *argv[]) {
       fps = fps_counter;
       fps_counter = 0;
       vstd_string_free(&fps_str);
-      fps_str = vstd_string_format("FPS: %04u", fps);
+      fps_str = vstd_string_format("FPS: %u", fps);
+      cnt_str = vstd_string_format("CNT: %u", objs.len);
     }
 
     VSTD_Vector(VGFX_OS_Event) events = vgfx_os_events(win);
@@ -173,7 +175,7 @@ int main(i32 argc, char *argv[]) {
 
       y = WINDOW_HEIGHT - y;
   
-      spawn_bunny(&objs, x, y);
+      spawn_bunny(&objs, x, y, 10000);
 
       spawn = false;
     }
@@ -235,11 +237,18 @@ int main(i32 argc, char *argv[]) {
     VGFX_AS_Font *fh;
     VGFX_ASSET_DEBUG_CAST(font, VGFX_ASSET_TYPE_FONT, fh);
 
-    vec2s tsize = vgfx_rd_font_render_size(fh, fps_str.ptr, true);
+    vec2s tsize0 = vgfx_rd_font_render_size(fh, fps_str.ptr, true);
+    vec2s tsize1 = vgfx_rd_font_render_size(fh, cnt_str.ptr, true);
 
     vgfx_rd_send_text(
       fh, fps_str.ptr, 
-      (vec3){0.0f, (f32)WINDOW_HEIGHT - tsize.y, 100.0f}, 
+      (vec3){0.0f, (f32)WINDOW_HEIGHT - tsize0.y, 100.0f}, 
+      (vec4){1.0f, 1.0f, 1.0f, 1.0f}
+    );
+
+    vgfx_rd_send_text(
+      fh, cnt_str.ptr, 
+      (vec3){0.0f, (f32)WINDOW_HEIGHT - (tsize0.y + tsize1.y), 100.0f}, 
       (vec4){1.0f, 1.0f, 1.0f, 1.0f}
     );
 

@@ -174,6 +174,9 @@ void _vgfx_os_window_callback_framebuffer_size(void *win, i32 w, i32 h) {
                           .window_posx = w,
                           .window_posy = h,
                       });
+
+  // TODO: Handle this manually
+  // glViewport(0, 0, w, h);
 }
 
 void _vgfx_os_window_callback_close(void *win) {

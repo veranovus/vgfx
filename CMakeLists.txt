@@ -1,6 +1,6 @@
 # Project configuration
 cmake_minimum_required(VERSION 3.26)
-project(vgfx VERSION 0.3.5 LANGUAGES C)
+project(vgfx VERSION 0.3.6 LANGUAGES C)
 
 # Project settings
 set(TARGET_NAME vgfx)

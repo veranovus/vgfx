@@ -15,3 +15,5 @@ Awesome game that I'm currently working on it's written from scratch using only 
 - `v0.3.3`: Added Shader as an Asset to AssetServer.
 - `v0.3.3`: Implemented Render module.
 - `v0.3.3`: Implemented batched rendering.
+- `v0.3.4`: Implemented sub texture rendering.
+- `v0.3.4`: Implemented text rendering.

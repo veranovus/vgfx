@@ -17,11 +17,9 @@ const char *TEXT_FRAG_SHADER_PATH = "res/shader/text.frag";
 const char *TEXT_VERT_SHADER_PATH = "res/shader/text.vert";
 
 const char *TEST_FONT_PATH = "res/font/JetBrainsMono-Regular.ttf";
-// const char *TEST_FONT_PATH = "res/font/Roboto-Regular.ttf";
-// const char *TEST_FONT_PATH = "res/font/Retro-Gaming.ttf";
 const char *TEST_TEXTURE_PATH = "res/bunny.png";
 
-static VGFX_Camera *s_camera = NULL;
+static VGFX_RD_Camera *s_camera = NULL;
 
 typedef struct Object {
   vec3 pos;
@@ -119,8 +117,16 @@ int main(i32 argc, char *argv[]) {
   VGFX_RD_Pipeline *pipeline = vgfx_rd_pipeline_new(asset_server);
 
   // Setup camera
-  s_camera = vgfx_camera_new(glm_rad(45.0f), WINDOW_WIDTH, WINDOW_HEIGHT, 0.0f,
-                             1000.0f, VGFX_CameraModeOrthographic);
+  s_camera = vgfx_rd_camera_new(&(VGFX_RD_CameraDesc) {
+    .mode = VGFX_RD_CAMERA_MODE_ORTHO,
+    .projection_settings = {
+      .near = 0.0f,
+      .far = 1000.0f,
+      .ortho_width = WINDOW_WIDTH,
+      .ortho_height = WINDOW_HEIGHT,
+    },
+    .position = { 0.0f, 0.0f, 999.9f },
+  });
 
   // Setup render pipeline
   const usize MAX_BUNNY = 100000;
@@ -230,11 +236,11 @@ int main(i32 argc, char *argv[]) {
     }
 
     // Update camera view
-    vgfx_camera_update_view(s_camera);
+    vgfx_rd_camera_update_view(s_camera);
 
     // Get view & projection matrix
     mat4 vpm;
-    vgfx_camera_get_matrix(s_camera, vpm);
+    vgfx_rd_camera_combined_matrix(s_camera, vpm);
 
     // Set instance data
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -291,7 +297,7 @@ int main(i32 argc, char *argv[]) {
   vgfx_rd_piepline_free(pipeline);
 
   // Free resources
-  vgfx_camera_free(s_camera);
+  vgfx_rd_camera_free(s_camera);
 
   // Free the vgfx
   vgfx_as_asset_server_free(asset_server);

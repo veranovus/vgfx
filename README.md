@@ -19,3 +19,4 @@ Simple multimedia framework written in C99.
 - `v0.3.4`: Implemented text rendering.
 - `v0.3.5`: Better text render size calculation.
 - `v0.3.6`: Render pipeline optimizations.
+- `v0.3.7`: Refactored camera.

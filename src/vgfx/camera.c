@@ -1,16 +1,24 @@
 #include "camera.h"
 
-/*****************************************************************************
- * - VGFX Camera
- * */
+// =============================================
+//
+//
+// Camera
+//
+//
+// =============================================
 
-VGFX_Camera *vgfx_camera_new(f32 fov, f32 width, f32 height, f32 near, f32 far,
-                             VGFX_CameraMode mode) {
-  VGFX_Camera *camera = (VGFX_Camera *)malloc(sizeof(VGFX_Camera));
-  *camera = (VGFX_Camera){
-      .position = {0.0f, 0.0f, 0.0f},
-      .front = {0.0f, 0.0f, -1.0f},
-      .world_up = {0.0f, 1.0f, 0.0f},
+VGFX_RD_Camera *
+vgfx_rd_camera_new(VGFX_RD_CameraDesc *desc) {
+
+  VGFX_ASSERT_NON_NULL(desc);
+
+  VGFX_RD_Camera *camera = (VGFX_RD_Camera*) malloc(sizeof(VGFX_RD_Camera));
+  *camera = (VGFX_RD_Camera) {
+    .mode = desc->mode,
+    .position = {desc->position[0], desc->position[1], desc->position[2]},
+    .front = {0.0f, 0.0f, -1.0f},
+    .world_up = {0.0f, 1.0f, 0.0f},
   };
 
   // Set camera's up vector
@@ -21,7 +29,7 @@ VGFX_Camera *vgfx_camera_new(f32 fov, f32 width, f32 height, f32 near, f32 far,
   glm_vec3_normalize(camera->right);
 
   // Create projection matrix
-  vgfx_camera_update_projection(camera, fov, width, height, near, far, mode);
+  vgfx_rd_camera_projection_settings(camera, &desc->projection_settings);
 
   // Create view matrix
   glm_lookat(camera->position, camera->front, camera->up, camera->view);
@@ -29,46 +37,58 @@ VGFX_Camera *vgfx_camera_new(f32 fov, f32 width, f32 height, f32 near, f32 far,
   return camera;
 }
 
-void vgfx_camera_free(VGFX_Camera *camera) { free(camera); }
+void
+vgfx_rd_camera_free(VGFX_RD_Camera *camera) {
+  
+  VGFX_ASSERT_NON_NULL(camera);
 
-/*****************************************************************************
- * - Camera Projection & View Functions
- * */
+  free(camera);
+}
 
-void vgfx_camera_update_projection(VGFX_Camera *camera, f32 fov, f32 width,
-                                   f32 height, f32 near, f32 far,
-                                   VGFX_CameraMode mode) {
-  camera->fov = fov;
-  camera->aspect_ratio = width / height;
-  camera->near = near;
-  camera->far = far;
-  camera->mode = mode;
+void
+vgfx_rd_camera_projection_settings(VGFX_RD_Camera *camera, VGFX_RD_CameraPS *ps) {
+  
+  VGFX_ASSERT_NON_NULL(camera);
+  VGFX_ASSERT_NON_NULL(ps);
+
+  camera->projection_settings = *ps;
 
   switch (camera->mode) {
-  case VGFX_CameraModePerspective:
-    glm_perspective(camera->fov, camera->aspect_ratio, camera->near,
-                    camera->far, camera->projection);
-
-    camera->position[2] = 3.0f;
+  case VGFX_RD_CAMERA_MODE_ORTHO:
+    glm_ortho(
+        0, 
+        camera->projection_settings.ortho_width, 
+        0, 
+        camera->projection_settings.ortho_height,
+        camera->projection_settings.near, 
+        camera->projection_settings.far, 
+        camera->projection);
     break;
-  case VGFX_CameraModeOrthographic:
-    glm_ortho(0, width, 0, height, camera->near, camera->far, camera->projection);
-
-    camera->position[2] = camera->far - 0.1f;
+  case VGFX_RD_CAMERA_MODE_PERSP:
+    glm_perspective(
+        camera->projection_settings.persp_fov, 
+        camera->projection_settings.persp_aspect_ratio, 
+        camera->projection_settings.near,
+        camera->projection_settings.far, 
+        camera->projection);
     break;
   }
 }
 
-void vgfx_camera_update_view(VGFX_Camera *camera) {
+void
+vgfx_rd_camera_update_view(VGFX_RD_Camera *camera) {
+  
+  VGFX_ASSERT_NON_NULL(camera);
+
   vec3 target;
   glm_vec3_add(camera->position, camera->front, target);
   glm_lookat(camera->position, target, camera->up, camera->view);
 }
 
-/*****************************************************************************
- * - Camera Helper Functions
- * */
+void
+vgfx_rd_camera_combined_matrix(VGFX_RD_Camera *camera, mat4 dest) {
 
-void vgfx_camera_get_matrix(VGFX_Camera *camera, mat4 dest) {
+  VGFX_ASSERT_NON_NULL(camera);
+  
   glm_mat4_mul(camera->projection, camera->view, dest);
 }
